@@ -1,0 +1,19 @@
+#login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#card-login {
+    margin: 40px;
+}
+
+#card-content-login {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+#div-formulario-login {
+    margin: 10px;
+}

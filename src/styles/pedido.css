@@ -1,0 +1,38 @@
+#card-pedido {
+    margin: 8px;
+    width: 300px;
+}
+
+#card-content-pedido {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+#nome-pedido {
+    margin: 4px;
+    font-weight: bold;
+}
+
+#telefone-pedido {
+    margin: 4px;
+}
+
+#data-pedido {
+    margin: 4px;
+}
+
+#div-itens {
+    display: flex;
+    flex-direction: row;
+}
+
+#item-pedido {
+    margin: 4px;
+    font-weight: bold;
+}
+
+#divider {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}

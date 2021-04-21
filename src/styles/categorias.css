@@ -1,0 +1,44 @@
+#categorias {
+    display: flex;
+    justify-content: center;
+}
+
+#section-body-categorias {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+#div-menu-categorias {
+    top: 0;
+    position: sticky;
+    background-color: white;
+}
+
+#card-categorias {
+    margin: 8px;
+}
+
+#card-content-categorias {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+#icone {
+    width: 30px;
+    height: 30px;
+    margin: 4px;
+    cursor: pointer;
+}
+
+#div-categorias {
+    margin: 8px 8px 60px;
+}
+
+@media screen and (max-width: 600px) {
+    #section-body-categorias {
+        width: 100%;
+    }
+}

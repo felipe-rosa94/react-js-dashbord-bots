@@ -1,0 +1,9 @@
+#section-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
+
+#section-body-pedidos {
+    width: 100%;
+}

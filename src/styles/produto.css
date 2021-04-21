@@ -1,0 +1,31 @@
+#card-produto {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+#card-content-produto {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+#label-produto {
+    margin: 4px;
+    font-weight: bold;
+}
+
+#label-preco {
+    margin: 4px;
+    color: green;
+}
+
+#icone {
+    cursor: pointer;
+}
+
+#div-produtos {
+    display: flex;
+    flex-direction: column;
+}

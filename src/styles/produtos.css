@@ -1,0 +1,22 @@
+#section-body-produtos {
+    display: flex;
+    flex-direction: column;
+}
+
+#card-produtos {
+    margin: 8px;
+}
+
+#card-content-produtos {
+    display: flex;
+    flex-direction: row;
+    padding: 20px;
+}
+
+#button-adicionar {
+    margin: 0;
+}
+
+#div-produtos {
+    margin: 8px;
+}
