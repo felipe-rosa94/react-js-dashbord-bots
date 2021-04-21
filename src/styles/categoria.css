@@ -19,3 +19,9 @@
 #icone {
     cursor: pointer;
 }
+
+#div-acoes-categoria {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}

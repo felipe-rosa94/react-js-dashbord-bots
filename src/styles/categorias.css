@@ -22,7 +22,8 @@
 #card-content-categorias {
     display: flex;
     align-items: center;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
     padding: 20px;
 }
 
@@ -35,6 +36,15 @@
 
 #div-categorias {
     margin: 8px 8px 60px;
+}
+
+#div-formulario-inputs-categoria {
+    width: 100%;
+}
+
+#div-inputs-categoria {
+    margin-top: 8px;
+    margin-bottom: 8px;
 }
 
 @media screen and (max-width: 600px) {

@@ -1,31 +1,28 @@
 import React from 'react'
 import '../styles/categoria.css'
-import {Card, CardContent, FormLabel} from '@material-ui/core'
+import {Card, CardContent, FormControlLabel, FormLabel, Switch} from '@material-ui/core'
 import {Delete} from '@material-ui/icons'
-import {request} from '../util'
-
-const {REACT_APP_URL_MONGODB} = process.env
 
 class Categoria extends React.Component {
 
-    onClickDeletar = categoria => this.deletar(categoria)
+    onClickAtivo = (e, id) => this.props.handleChange({acao: 'alterar', dados: {ativo: e.target.checked, id: id}})
 
-    deletar = async categoria => {
-        const tabela = localStorage.getItem(`gp:tabela`)
-        let url = `${REACT_APP_URL_MONGODB}/category${tabela}/?categoria=${categoria}`
-        let conexao = {method: 'delete'}
-        const {returnCode, message} = await request(url, conexao)
-        if (!returnCode) return alert(message)
-        this.props.handleChange()
-    }
+    onClickDeletar = objeto => this.props.handleChange({acao: 'deletar', dados: objeto})
 
     render() {
-        const {categoria} = this.props.data
+        const {_id, categoria, ativo} = this.props.data
         return (
             <Card id="card-categoria">
                 <CardContent id="card-content-categoria">
                     <FormLabel id="label-categoria">{categoria}</FormLabel>
-                    <Delete id="icone" onClick={() => this.onClickDeletar(categoria)}/>
+                    <div id="div-acoes-categoria">
+                        <FormControlLabel
+                            control={<Switch checked={ativo}
+                                             onChange={(e) => this.onClickAtivo(e, _id)}/>}
+                            label={ativo ? 'Categoria ativada' : 'Categoria desativada'}
+                        />
+                        <Delete id="icone" onClick={() => this.onClickDeletar({id: _id, categoria: categoria})}/>
+                    </div>
                 </CardContent>
             </Card>
         )

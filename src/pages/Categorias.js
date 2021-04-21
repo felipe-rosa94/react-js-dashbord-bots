@@ -1,8 +1,8 @@
 import React from 'react'
 import '../styles/categorias.css'
-import {Box, CardContent, Divider} from '@material-ui/core'
+import {Box, CardContent, DialogContent, DialogContentText, DialogTitle, Divider} from '@material-ui/core'
 import {AddCircle, Cancel, Search} from '@material-ui/icons'
-import {Card, TextField, Input} from '@material-ui/core'
+import {Button, Card, Dialog, DialogActions, TextField, Input} from '@material-ui/core'
 import {request, cleanAccents} from '../util'
 import MenuInferior from '../components/MenuInferior'
 import Categoria from '../components/Categoria'
@@ -21,20 +21,66 @@ class Categorias extends React.Component {
     }
 
     handleImage = async e => {
-        let file = e.target.files[0]
-        let reader = new FileReader()
-        reader.readAsDataURL(file)
-        reader.onload = () => this.setState({imageBase64: reader.result})
+        try {
+            let file = e.target.files[0]
+            let reader = new FileReader()
+            reader.readAsDataURL(file)
+            reader.onload = () => this.setState({imageBase64: reader.result.replace(/=/g, '')})
+        } catch (e) {
+            console.error(e.message)
+        }
     }
 
     handleInput = e => this.setState({[e.target.name]: e.target.value.toUpperCase()})
 
-    handleDeleta = () => this.deleta()
-
-    deleta = () => {
-        this.setState({busca: '', buscando: false})
-        this.consultarCategoria()
+    handleCategoria = objeto => {
+        const {acao, dados: {id, categoria, ativo}} = objeto
+        if (acao === 'alterar') {
+            this.alterarCategoria(id, ativo)
+        } else {
+            this.setState({
+                busca: '',
+                buscando: false,
+                dialogCaterogia: true,
+                idDeletar: id,
+                categoriaDeletar: categoria
+            })
+        }
     }
+
+    alterarCategoria = async (id, ativo) => {
+        try {
+            const tabela = localStorage.getItem(`gp:tabela`)
+            let url = `${REACT_APP_URL_MONGODB}/category${tabela}/?id=${id}`
+            let conexao = {method: 'put', body: JSON.stringify({ativo: ativo})}
+            const {returnCode, message} = await request(url, conexao)
+            if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
+            this.consultarCategoria()
+        } catch (e) {
+            console.error(e.message)
+        }
+    }
+
+    cancelaDeletar = () => this.setState({dialogCaterogia: false, idDeletar: '', categoriaDeletar: ''})
+
+    confirmaDeletar = () => this.deletarCategoria()
+
+    deletarCategoria = async () => {
+        try {
+            const {idDeletar} = this.state
+            const tabela = localStorage.getItem(`gp:tabela`)
+            let url = `${REACT_APP_URL_MONGODB}/category${tabela}/?id=${idDeletar}`
+            let conexao = {method: 'delete'}
+            const {returnCode, message} = await request(url, conexao)
+            if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
+            this.setState({dialogCaterogia: false})
+            this.consultarCategoria()
+        } catch (e) {
+            console.error(e.message)
+        }
+    }
+
+    cancelaAviso = () => this.setState({dialogAviso: false})
 
     onClickCancelaBusca = () => this.cancelaBusca()
 
@@ -62,18 +108,16 @@ class Categorias extends React.Component {
             const {categoria, imageBase64} = this.state
             const tabela = localStorage.getItem(`gp:tabela`)
             let url = `${REACT_APP_URL_MONGODB}/category${tabela}`
-
             const conexao = {
                 method: 'post',
-                body: JSON.stringify({categoria: categoria, imagem: imageBase64})
+                body: JSON.stringify({categoria: categoria, imagem: imageBase64, ativo: true})
             }
-
             const {returnCode, message} = await request(url, conexao)
             if (returnCode) {
                 this.setState({categoria: ''})
                 this.consultarCategoria()
             } else {
-                alert(message)
+                this.setState({dialogAviso: true, mensagemAviso: message})
             }
         } catch (e) {
             console.error(e.message)
@@ -89,7 +133,7 @@ class Categorias extends React.Component {
             if (returnCode) {
                 this.setState({categorias: data, dados: data})
             } else {
-                alert(message)
+                this.setState({dialogAviso: true, mensagemAviso: message})
             }
         } catch (e) {
             console.error(e.message)
@@ -101,7 +145,16 @@ class Categorias extends React.Component {
     }
 
     render() {
-        const {categoria, categorias, buscando, busca} = this.state
+        const {
+            categoria,
+            categorias,
+            buscando,
+            busca,
+            dialogCaterogia,
+            categoriaDeletar,
+            dialogAviso,
+            mensagemAviso
+        } = this.state
         return (
             <div>
                 <div id="categorias">
@@ -120,15 +173,17 @@ class Categorias extends React.Component {
 
                             <Card id="card-categorias">
                                 <CardContent id="card-content-categorias">
-
-                                    <div>
-                                        <TextField variant="outlined" fullWidth={true} placeholder="Categoria"
-                                                   value={categoria}
-                                                   id="input-categoria" name="categoria" onChange={this.handleInput}/>
-
-                                        <Input id="input-image" type="file" onChange={(e) => this.handleImage(e)}/>
+                                    <div id="div-formulario-inputs-categoria">
+                                        <div id="div-inputs-categoria">
+                                            <TextField variant="outlined" fullWidth={true} placeholder="Categoria"
+                                                       value={categoria}
+                                                       id="input-categoria" name="categoria"
+                                                       onChange={this.handleInput}/>
+                                        </div>
+                                        <div id="div-inputs-categoria">
+                                            <Input id="input-image" type="file" onChange={(e) => this.handleImage(e)}/>
+                                        </div>
                                     </div>
-
                                     <Box p={1}/>
                                     <AddCircle id="icone" onClick={this.onClickAdicionar}>Adicionar</AddCircle>
                                 </CardContent>
@@ -139,12 +194,31 @@ class Categorias extends React.Component {
                         <div id="div-categorias">
                             {
                                 categorias.map((i, index) => (
-                                    <Categoria key={index} data={i} handleChange={this.handleDeleta.bind(this)}/>))
+                                    <Categoria key={index} data={i}
+                                               handleChange={this.handleCategoria.bind(this)}/>))
                             }
                         </div>
                     </section>
                 </div>
                 <MenuInferior pagina="categorias"/>
+
+                <Dialog open={dialogCaterogia} onClose={this.cancelaDeletar}>
+                    <DialogTitle>Deletar</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>{`Deseja deletar a categoria ${categoriaDeletar} ?`}</DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button color="primary" onClick={this.confirmaDeletar}>Sim</Button>
+                        <Button color="primary" onClick={this.cancelaDeletar}>Não</Button>
+                    </DialogActions>
+                </Dialog>
+
+                <Dialog open={dialogAviso} onClose={this.cancelaAviso}>
+                    <DialogTitle>Aviso</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>{mensagemAviso}</DialogContentText>
+                    </DialogContent>
+                </Dialog>
             </div>
         )
     }
