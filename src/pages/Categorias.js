@@ -1,6 +1,6 @@
 import React from 'react'
 import '../styles/categorias.css'
-import {Box, CardContent, DialogContent, DialogContentText, DialogTitle, Divider} from '@material-ui/core'
+import {Box, CardContent, CardMedia, DialogContent, DialogContentText, DialogTitle, Divider} from '@material-ui/core'
 import {AddCircle, Cancel, Search} from '@material-ui/icons'
 import {Button, Card, Dialog, DialogActions, TextField, Input} from '@material-ui/core'
 import {request, cleanAccents} from '../util'
@@ -25,7 +25,9 @@ class Categorias extends React.Component {
             let file = e.target.files[0]
             let reader = new FileReader()
             reader.readAsDataURL(file)
-            reader.onload = () => this.setState({imageBase64: reader.result.replace(/=/g, '')})
+            reader.onload = () => {
+                this.setState({imageBase64: reader.result.replace(/=/g, '')})
+            }
         } catch (e) {
             console.error(e.message)
         }
@@ -33,10 +35,23 @@ class Categorias extends React.Component {
 
     handleInput = e => this.setState({[e.target.name]: e.target.value.toUpperCase()})
 
-    handleCategoria = objeto => {
-        const {acao, dados: {id, categoria, ativo}} = objeto
+    handleCategoria = async objeto => {
+        let {acao, dados: {id, categoria, ativo, imagem, ordem}} = objeto
+        const {dados} = this.state
         if (acao === 'alterar') {
-            this.alterarCategoria(id, ativo)
+            this.alterarCategoria(id, {ativo: ativo})
+        } else if (acao === 'imagem') {
+            this.setState({dialogImagem: true, imagemCategoria: imagem, tituloCategoria: categoria})
+        } else if (acao === 'sobe') {
+            if (ordem === 0) return
+            let novaOrdem = (ordem - 1)
+            await this.alterarCategoria(id, {ordem: novaOrdem})
+            await this.alterarCategoria(dados[novaOrdem]._id, {ordem: ordem})
+        } else if (acao === 'desce') {
+            if (ordem === (dados.length - 1)) return
+            let novaOrdem = (ordem + 1)
+            await this.alterarCategoria(id, {ordem: novaOrdem})
+            await this.alterarCategoria(dados[novaOrdem]._id, {ordem: ordem})
         } else {
             this.setState({
                 busca: '',
@@ -48,14 +63,14 @@ class Categorias extends React.Component {
         }
     }
 
-    alterarCategoria = async (id, ativo) => {
+    alterarCategoria = async (id, json) => {
         try {
             const tabela = localStorage.getItem(`gp:tabela`)
             let url = `${REACT_APP_URL_MONGODB}/category${tabela}/?id=${id}`
-            let conexao = {method: 'put', body: JSON.stringify({ativo: ativo})}
+            let conexao = {method: 'put', body: JSON.stringify(json)}
             const {returnCode, message} = await request(url, conexao)
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
-            this.consultarCategoria()
+            await this.consultarCategoria()
         } catch (e) {
             console.error(e.message)
         }
@@ -79,6 +94,8 @@ class Categorias extends React.Component {
             console.error(e.message)
         }
     }
+
+    cancelaImagem = () => this.setState({dialogImagem: false})
 
     cancelaAviso = () => this.setState({dialogAviso: false})
 
@@ -105,17 +122,19 @@ class Categorias extends React.Component {
 
     adicionar = async () => {
         try {
-            const {categoria, imageBase64} = this.state
+            const {dados, categoria, imageBase64} = this.state
             const tabela = localStorage.getItem(`gp:tabela`)
+            if (!categoria) return this.setState({dialogAviso: true, mensagemAviso: 'Coloque o nome de categoria'})
             let url = `${REACT_APP_URL_MONGODB}/category${tabela}`
+            let ordem = dados.length
             const conexao = {
                 method: 'post',
-                body: JSON.stringify({categoria: categoria, imagem: imageBase64, ativo: true})
+                body: JSON.stringify({categoria: categoria, imagem: imageBase64, ativo: true, ordem: ordem})
             }
             const {returnCode, message} = await request(url, conexao)
             if (returnCode) {
                 this.setState({categoria: ''})
-                this.consultarCategoria()
+                await this.consultarCategoria()
             } else {
                 this.setState({dialogAviso: true, mensagemAviso: message})
             }
@@ -131,6 +150,11 @@ class Categorias extends React.Component {
             const conexao = {method: 'get'}
             const {returnCode, message, data} = await request(url, conexao)
             if (returnCode) {
+                data.sort((a, b) => {
+                    if (b.ordem > a.ordem) return -1
+                    if (b.ordem < a.ordem) return 1
+                    return 0
+                })
                 this.setState({categorias: data, dados: data})
             } else {
                 this.setState({dialogAviso: true, mensagemAviso: message})
@@ -153,7 +177,10 @@ class Categorias extends React.Component {
             dialogCaterogia,
             categoriaDeletar,
             dialogAviso,
-            mensagemAviso
+            mensagemAviso,
+            dialogImagem,
+            imagemCategoria,
+            tituloCategoria
         } = this.state
         return (
             <div>
@@ -211,6 +238,13 @@ class Categorias extends React.Component {
                         <Button color="primary" onClick={this.confirmaDeletar}>Sim</Button>
                         <Button color="primary" onClick={this.cancelaDeletar}>Não</Button>
                     </DialogActions>
+                </Dialog>
+
+                <Dialog open={dialogImagem} onClose={this.cancelaImagem}>
+                    <DialogTitle>{tituloCategoria}</DialogTitle>
+                    <DialogContent id="card-content-imagem">
+                        <CardMedia id="card-image" image={imagemCategoria}/>
+                    </DialogContent>
                 </Dialog>
 
                 <Dialog open={dialogAviso} onClose={this.cancelaAviso}>

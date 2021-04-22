@@ -47,8 +47,22 @@
     margin-bottom: 8px;
 }
 
+#card-image {
+    width: 300px;
+    height: 300px;
+}
+
+#card-content-imagem {
+    padding: 0px 20px 20px;
+}
+
 @media screen and (max-width: 600px) {
     #section-body-categorias {
         width: 100%;
+    }
+
+    #card-image {
+        width: 250px;
+        height: 250px;
     }
 }

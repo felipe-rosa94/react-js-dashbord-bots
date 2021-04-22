@@ -25,3 +25,14 @@
     flex-direction: row;
     align-items: center;
 }
+
+#label-imagem {
+    color: #098dbd;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#card-content-categoria {
+    display: flex;
+    flex-wrap: wrap;
+}
