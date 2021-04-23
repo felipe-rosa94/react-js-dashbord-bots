@@ -11,6 +11,9 @@
 
 #div-menu-categorias {
     top: 0;
+    left: auto;
+    right: 0;
+    z-index: 1100;
     position: sticky;
     background-color: white;
 }
@@ -54,6 +57,14 @@
 
 #card-content-imagem {
     padding: 0px 20px 20px;
+}
+
+#div-botao-salvar-categorias {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px;
 }
 
 @media screen and (max-width: 600px) {
