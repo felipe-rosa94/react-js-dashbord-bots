@@ -30,6 +30,7 @@ const tabela = localStorage.getItem(`gp:tabela`)
 class Produtos extends React.Component {
 
     state = {
+        editando: false,
         vizualizar: true,
         imageBase64: '',
         busca: '',
@@ -50,7 +51,7 @@ class Produtos extends React.Component {
             let reader = new FileReader()
             reader.readAsDataURL(file)
             reader.onload = () => {
-                this.setState({imageBase64: reader.result.replace(/=/g, '')})
+                this.setState({imagem: reader.result.replace(/=/g, ''), imageBase64: reader.result.replace(/=/g, '')})
             }
         } catch (e) {
             console.error(e.message)
@@ -60,7 +61,7 @@ class Produtos extends React.Component {
     handleInput = e => this.setState({[e.target.name]: isNaN(e.target.value) ? e.target.value.toUpperCase() : e.target.value})
 
     handleProdutos = async objeto => {
-        let {acao, dados: {_id, produto, ativo, imagem, ordem}} = objeto
+        let {acao, dados: {_id, produto, ativo, imagem, ordem, preco, descricao, indexCategoria}} = objeto
         const {dados} = this.state
         if (acao === 'ativo') {
             await this.alterarProduto(_id, {ativo: ativo})
@@ -78,12 +79,17 @@ class Produtos extends React.Component {
             await this.alterarProduto(dados[novaOrdem]._id, {ordem: ordem})
         } else if (acao === 'editar') {
             this.setState({
-                busca: '',
-                buscando: false,
-                dialogProduto: true,
-                idDeletar: _id,
-                produtoDeletar: produto
+                vizualizar: true,
+                editando: true,
+                _id: _id,
+                produto: produto,
+                preco: preco,
+                imagem: imagem,
+                categoria: indexCategoria
             })
+            setTimeout(() => {
+                document.getElementById('descricao').value = descricao
+            }, 200)
         } else if (acao === 'deletar') {
             this.setState({
                 busca: '',
@@ -133,6 +139,9 @@ class Produtos extends React.Component {
             console.error(e.message)
         }
     }
+
+    onClickCancelaEdicao = () => window.location.reload()
+
     onClickCancelaBusca = () => this.cancelaBusca()
 
     cancelaBusca = () => {
@@ -153,18 +162,47 @@ class Produtos extends React.Component {
         this.setState({buscando: true, produtos: array})
     }
 
-    onClickAdicionar = () => this.adicionar()
+    onClickAdicionar = async () => {
+        const {editando, _id, produto, imagem, imageBase64, preco, categoria, categorias} = this.state
+        if (editando) {
+            let descricao = document.getElementById('descricao').value
+            let json = {
+                produto: produto,
+                preco: preco,
+                imagem: imageBase64 !== '' ? imageBase64 : imagem,
+                descricao: descricao,
+                categoria: (categorias.length !== 0 && categoria !== 999) ? categorias[categoria].categoria : 'Nenhum',
+                indexCategoria: categoria
+            }
+            await this.alterarProduto(_id, json)
+            document.getElementById('descricao').value = ''
+            document.getElementById('input-image').value = ''
+            this.setState({
+                produto: '',
+                preco: '',
+                descricao: '',
+                categoria: 999,
+                editando: false,
+                imagem: '',
+                imageBase64: '',
+            })
+        } else {
+            await this.adicionar()
+        }
+    }
 
     adicionar = async () => {
         try {
-            const {produto, descricao, preco, categorias, categoria, imageBase64, dados, ativo} = this.state
+            const {produto, preco, categorias, categoria, imageBase64, dados, ativo} = this.state
             let url = `${REACT_APP_URL_MONGODB}/products${tabela}`
             let ordem = dados.length
+            let descricao = document.getElementById('descricao').value
             const conexao = {
                 method: 'post',
                 body: JSON.stringify({
                     produto: produto,
                     categoria: (categorias.length !== 0 && categoria !== 999) ? categorias[categoria].categoria : 'Nenhum',
+                    indexCategoria: categoria,
                     descricao: descricao,
                     preco: preco,
                     ativo: ativo,
@@ -231,8 +269,8 @@ class Produtos extends React.Component {
 
     render() {
         const {
+            imagem,
             produto,
-            descricao,
             preco,
             produtos,
             busca,
@@ -246,7 +284,8 @@ class Produtos extends React.Component {
             mensagemAviso,
             categorias,
             categoria,
-            vizualizar
+            vizualizar,
+            editando
         } = this.state
         return (
             <div>
@@ -270,15 +309,16 @@ class Produtos extends React.Component {
                                         <div id="div-formulario-inputs-produto">
                                             <div id="div-inputs-produtos">
                                                 <TextField variant="outlined" fullWidth={true} placeholder="Produto"
-                                                           value={produto} name="produto" onChange={this.handleInput}/>
+                                                           id="produto" value={produto} name="produto"
+                                                           onChange={this.handleInput}/>
                                                 <Box p={1}/>
                                                 <TextField variant="outlined" fullWidth={true} placeholder="Preço"
-                                                           type="number"
+                                                           type="number" id="preco"
                                                            value={preco} name="preco" onChange={this.handleInput}/>
                                             </div>
                                             <div id="div-inputs-produtos">
                                                 <TextField variant="outlined" fullWidth={true} placeholder="Descrição"
-                                                           value={descricao} name="descricao"
+                                                           name="descricao" id="descricao"
                                                            onChange={this.handleInput}/>
                                                 <Box p={1}/>
                                                 <FormControl variant="outlined" fullWidth={true}>
@@ -300,11 +340,20 @@ class Produtos extends React.Component {
                                             <div id="div-inputs-produtos">
                                                 <Input id="input-image" type="file"
                                                        onChange={(e) => this.handleImage(e)}/>
+                                                <Box p={1}/>
+                                                {imagem && <CardMedia id="card-media-imagem-pequena" image={imagem}/>}
                                             </div>
                                         </div>
                                     </CardContent>
                                     <div id="div-botao-salvar-produtos">
                                         <Button variant="outlined" onClick={this.onClickAdicionar}>Salvar</Button>
+                                        {editando && <Box p={1}/>}
+                                        {
+                                            editando &&
+                                            <Button variant="outlined" onClick={this.onClickCancelaEdicao}>
+                                                Cancelar
+                                            </Button>
+                                        }
                                     </div>
                                 </Card>
                             }

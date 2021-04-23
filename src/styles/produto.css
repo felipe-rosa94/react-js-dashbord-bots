@@ -18,6 +18,7 @@
 
 #label-descricao {
     margin: 4px;
+    max-width: 400px;
 }
 
 #label-preco {
@@ -34,11 +35,30 @@
     flex-direction: column;
 }
 
+#label-imagem {
+    margin-right: 8px;
+}
+
+@media screen and (max-width: 1024px) {
+    #label-descricao {
+        max-width: 300px;
+    }
+}
+
+@media screen and (max-width: 920px) {
+    #label-descricao {
+        max-width: 250px;
+    }
+}
 
 @media screen and (max-width: 800px) {
     #card-content-produto {
         align-items: flex-start;
         flex-direction: column;
         padding: 10px;
+    }
+
+    #label-descricao {
+        width: 100%;
     }
 }

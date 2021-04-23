@@ -38,14 +38,14 @@ class Produto extends React.Component {
                             {parseFloat(preco).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}
                         </FormLabel>
                     </div>
-                    {
-                        imagem &&
-                        <FormLabel id="label-imagem"
-                                   onClick={() => this.onClick('imagem', this.props.data)}>
-                            Ver imagem
-                        </FormLabel>
-                    }
                     <div id="div-acoes-categoria">
+                        {
+                            imagem &&
+                            <FormLabel id="label-imagem"
+                                       onClick={() => this.onClick('imagem', this.props.data)}>
+                                Imagem
+                            </FormLabel>
+                        }
                         <FormControlLabel
                             control={<Switch checked={ativo}
                                              onChange={(e) => this.onClick('ativo', this.props.data, e)}/>}
