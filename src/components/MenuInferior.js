@@ -1,7 +1,7 @@
 import React from 'react'
 import {withRouter} from 'react-router-dom'
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core'
-import {HomeRounded, Category, AddCircleOutline} from '@material-ui/icons'
+import {HomeRounded, CategoryRounded, AddCircleOutline, SettingsRounded} from '@material-ui/icons'
 import '../styles/menuInferior.css'
 
 class MenuInferior extends React.Component {
@@ -17,6 +17,9 @@ class MenuInferior extends React.Component {
                 break
             case 2:
                 pagina.push('/produtos')
+                break
+            case 3:
+                pagina.push('/configuracoes')
                 break
             default:
                 break
@@ -35,13 +38,18 @@ class MenuInferior extends React.Component {
                     <BottomNavigationAction
                         label="Categorias"
                         style={pagina === 'categorias' ? {color: '#82af69'} : {color: 'white'}}
-                        icon={<Category id="icons"
+                        icon={<CategoryRounded id="icons"
                                         style={pagina === 'categorias' ? {color: '#82af69'} : {color: 'white'}}/>}/>
                     <BottomNavigationAction
                         label="Produtos"
                         style={pagina === 'produtos' ? {color: '#009688'} : {color: 'white'}}
                         icon={<AddCircleOutline id="icons"
                                                 style={pagina === 'produtos' ? {color: '#009688'} : {color: 'white'}}/>}/>
+                    <BottomNavigationAction
+                        label="Configurações"
+                        style={pagina === 'configuracoes' ? {color: '#960064'} : {color: 'white'}}
+                        icon={<SettingsRounded id="icons"
+                                                style={pagina === 'configuracoes' ? {color: '#960064'} : {color: 'white'}}/>}/>
                 </BottomNavigation>
             </div>
         )
