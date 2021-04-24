@@ -37,7 +37,7 @@ class Categorias extends React.Component {
             let reader = new FileReader()
             reader.readAsDataURL(file)
             reader.onload = () => {
-                this.setState({imageBase64: reader.result.replace(/=/g, '')})
+                this.setState({imagem: reader.result.replace(/=/g, ''), imageBase64: reader.result.replace(/=/g, '')})
             }
         } catch (e) {
             console.error(e.message)
@@ -47,28 +47,36 @@ class Categorias extends React.Component {
     handleInput = e => this.setState({[e.target.name]: e.target.value.toUpperCase()})
 
     handleCategoria = async objeto => {
-        let {acao, dados: {id, categoria, ativo, imagem, ordem}} = objeto
+        let {acao, dados: {_id, categoria, ativo, imagem, ordem}} = objeto
         const {dados} = this.state
         if (acao === 'ativo') {
-            this.alterarCategoria(id, {ativo: ativo})
+            this.alterarCategoria(_id, {ativo: ativo})
         } else if (acao === 'imagem') {
             this.setState({dialogImagem: true, imagemCategoria: imagem, tituloCategoria: categoria})
         } else if (acao === 'sobe') {
             if (ordem === 0) return
             let novaOrdem = (ordem - 1)
-            await this.alterarCategoria(id, {ordem: novaOrdem})
+            await this.alterarCategoria(_id, {ordem: novaOrdem})
             await this.alterarCategoria(dados[novaOrdem]._id, {ordem: ordem})
         } else if (acao === 'desce') {
             if (ordem === (dados.length - 1)) return
             let novaOrdem = (ordem + 1)
-            await this.alterarCategoria(id, {ordem: novaOrdem})
+            await this.alterarCategoria(_id, {ordem: novaOrdem})
             await this.alterarCategoria(dados[novaOrdem]._id, {ordem: ordem})
+        } else if (acao === 'editar') {
+            this.setState({
+                vizualizar: true,
+                editando: true,
+                _id: _id,
+                categoria: categoria,
+                imagem: imagem
+            })
         } else if (acao === 'deletar') {
             this.setState({
                 busca: '',
                 buscando: false,
                 dialogCaterogia: true,
-                idDeletar: id,
+                idDeletar: _id,
                 categoriaDeletar: categoria
             })
         }
@@ -90,6 +98,8 @@ class Categorias extends React.Component {
             console.error(e.message)
         }
     }
+
+    onClickCancelaEdicao = () => window.location.reload()
 
     cancelaDeletar = () => this.setState({dialogCaterogia: false, idDeletar: '', categoriaDeletar: ''})
 
@@ -132,7 +142,25 @@ class Categorias extends React.Component {
         this.setState({buscando: true, categorias: array})
     }
 
-    onClickAdicionar = () => this.adicionar()
+    onClickAdicionar = async () => {
+        const {editando, _id, imagem, imageBase64, categoria} = this.state
+        if (editando) {
+            let json = {
+                categoria: categoria,
+                imagem: imageBase64 !== '' ? imageBase64 : imagem
+            }
+            await this.alterarCategoria(_id, json)
+            document.getElementById('input-image').value = ''
+            this.setState({
+                categoria: '',
+                editando: false,
+                imagem: '',
+                imageBase64: '',
+            })
+        } else {
+            await this.adicionar()
+        }
+    }
 
     adicionar = async () => {
         try {
@@ -193,7 +221,9 @@ class Categorias extends React.Component {
             dialogImagem,
             imagemCategoria,
             tituloCategoria,
-            vizualizar
+            vizualizar,
+            imagem,
+            editando
         } = this.state
         return (
             <div>
@@ -215,20 +245,29 @@ class Categorias extends React.Component {
                                 <Card id="card-categorias">
                                     <CardContent id="card-content-categorias">
                                         <div id="div-formulario-inputs-categoria">
-                                            <div id="div-inputs-categoria">
+                                            <div id="div-inputs-categorias">
                                                 <TextField variant="outlined" fullWidth={true} placeholder="Categoria"
                                                            value={categoria}
                                                            id="input-categoria" name="categoria"
                                                            onChange={this.handleInput}/>
                                             </div>
-                                            <div id="div-inputs-categoria">
+                                            <div id="div-inputs-categorias">
                                                 <Input id="input-image" type="file"
                                                        onChange={(e) => this.handleImage(e)}/>
+                                                <Box p={1}/>
+                                                {imagem && <CardMedia id="card-media-imagem-pequena" image={imagem}/>}
                                             </div>
                                         </div>
                                     </CardContent>
                                     <div id="div-botao-salvar-categorias">
                                         <Button variant="outlined" onClick={this.onClickAdicionar}>Salvar</Button>
+                                        {editando && <Box p={1}/>}
+                                        {
+                                            editando &&
+                                            <Button variant="outlined" onClick={this.onClickCancelaEdicao}>
+                                                Cancelar
+                                            </Button>
+                                        }
                                     </div>
                                 </Card>
                             }

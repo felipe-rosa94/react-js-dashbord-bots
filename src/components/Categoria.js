@@ -1,7 +1,7 @@
 import React from 'react'
 import '../styles/categoria.css'
 import {Card, CardContent, FormControlLabel, FormLabel, Switch} from '@material-ui/core'
-import {Delete, ArrowUpward, ArrowDownward} from '@material-ui/icons'
+import {Delete, ArrowUpward, ArrowDownward, Edit} from '@material-ui/icons'
 
 class Categoria extends React.Component {
 
@@ -20,19 +20,20 @@ class Categoria extends React.Component {
             <Card id="card-categoria">
                 <CardContent id="card-content-categoria">
                     <FormLabel id="label-categoria">{categoria}</FormLabel>
-                    {
-                        imagem &&
-                        <FormLabel id="label-imagem"
-                                   onClick={() => this.onClick('imagem', this.props.data)}>
-                            Ver imagem
-                        </FormLabel>
-                    }
                     <div id="div-acoes-categoria">
+                        {
+                            imagem &&
+                            <FormLabel id="label-imagem"
+                                       onClick={() => this.onClick('imagem', this.props.data)}>
+                                Imagem
+                            </FormLabel>
+                        }
                         <FormControlLabel
                             control={<Switch checked={ativo}
                                              onChange={(e) => this.onClick('ativo', this.props.data, e)}/>}
                             label={ativo ? 'Categoria ativada' : 'Categoria desativada'}
                         />
+                        <Edit id="icone" onClick={() => this.onClick('editar', this.props.data)}/>
                         <Delete id="icone" onClick={() => this.onClick('deletar', this.props.data)}/>
                         <ArrowUpward id="icone" onClick={() => this.onClick('sobe', this.props.data)}/>
                         <ArrowDownward id="icone" onClick={() => this.onClick('desce', this.props.data)}/>
