@@ -9,4 +9,18 @@ const cleanAccents = text => {
     return text
 }
 
-export {request, cleanAccents}
+const cleanPhone = text => {
+    text = text.replace('(', '')
+    text = text.replace(')', '')
+    text = text.replace(' ', '')
+    return text.trim()
+}
+
+const phoneMask = phone => {
+    if (phone !== '' && phone !== undefined) {
+        phone = phone.replace(/\D/g, '').replace(/(\d{2})(\d)/, '($1) $2')
+        return phone.substring(0, 14)
+    }
+}
+
+export {request, cleanAccents, phoneMask, cleanPhone}
