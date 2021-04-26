@@ -3,7 +3,7 @@ import '../styles/configuracoes.css'
 import MenuInferior from '../components/MenuInferior'
 import {
     Box,
-    Button,
+    Button, CardMedia,
     Dialog,
     DialogContent,
     DialogContentText,
@@ -18,7 +18,7 @@ import {withStyles} from '@material-ui/core/styles'
 import {request, phoneMask, cleanPhone} from '../util'
 
 const {REACT_APP_URL_MONGODB} = process.env
-const tabela = localStorage.getItem(`gp:tabela`)
+let tabela
 
 const RadioButton = withStyles({
     root: {
@@ -41,7 +41,8 @@ class Configuracoes extends React.Component {
         email: '',
         ativo: true,
         dialogAviso: false,
-        mensagemAviso: ''
+        mensagemAviso: '',
+        qrcode: ''
     }
 
     handleInput = e => this.setState({[e.target.name]: (e.target.name === 'whatsApp') ? phoneMask(e.target.value) : e.target.value})
@@ -54,7 +55,7 @@ class Configuracoes extends React.Component {
 
     salvarAlteracoes = async () => {
         try {
-            const {_id, intervalo, boasVindas, agradecimento, whatsApp, email, ativo} = this.state
+            const {_id, intervalo, ignorar, boasVindas, agradecimento, whatsApp, email, ativo} = this.state
 
             if (!boasVindas) return this.setState({
                 dialogAviso: true,
@@ -70,14 +71,18 @@ class Configuracoes extends React.Component {
                 mensagemAviso: 'Adicione um número que recebera as notificações'
             })
 
+            let ignorados = ignorar.split(',')
+
             let json = {
                 intervalo: intervalo,
                 boasVindas: boasVindas,
                 agradecimento: agradecimento,
                 whatsApp: cleanPhone(whatsApp),
+                ignorados: ignorados,
                 email: email,
                 ativo: ativo
             }
+
             let url
             let conexao
             if (_id) {
@@ -101,7 +106,7 @@ class Configuracoes extends React.Component {
             const conexao = {method: 'get'}
             const {returnCode, message, data} = await request(url, conexao)
             if (!returnCode) return this.setState({dialogAviso: true, mensagemAviso: message})
-            const {_id, intervalo, boasVindas, agradecimento, whatsApp, email, ativo} = data[0]
+            const {_id, intervalo, ignorados, boasVindas, agradecimento, whatsApp, email, ativo} = data[0]
             this.setState({
                 _id: _id,
                 intervalo: intervalo,
@@ -113,17 +118,34 @@ class Configuracoes extends React.Component {
             })
             document.getElementById('input-boas-vindas').value = boasVindas
             document.getElementById('input-agradecimento').value = agradecimento
+            document.getElementById('input-ignorar').value = ignorados
         } catch (e) {
             console.log(e.message)
         }
     }
 
+    consultaQrCode = () => {
+        setInterval(async () => {
+            let usuario = sessionStorage.getItem(`gp:usuario`)
+            let senha = sessionStorage.getItem(`gp:senha`)
+            const url = `${REACT_APP_URL_MONGODB}/userBots/?user=${usuario}&password=${senha}`
+            const conexao = {method: 'get'}
+            const {returnCode, data, message} = await request(url, conexao)
+            if (!returnCode) return alert(message)
+            if (data.length === 0) return alert('Usuário ou senha incorretos')
+            const {qrcode} = data[0]
+            this.setState({qrcode: qrcode})
+        }, 1000)
+    }
+
     componentDidMount() {
+        tabela = localStorage.getItem(`gp:tabela`)
         this.consultarConfiguracoes()
+        this.consultaQrCode()
     }
 
     render() {
-        const {intervalo, whatsApp, email, ativo, dialogAviso, mensagemAviso} = this.state
+        const {intervalo, whatsApp, email, ativo, dialogAviso, mensagemAviso, qrcode} = this.state
         return (
             <div>
                 <div id="configuracoes">
@@ -170,6 +192,11 @@ class Configuracoes extends React.Component {
                                                       control={<RadioButton/>} onChange={(e) => this.onClickRadio(e)}/>
                                 </RadioGroup>
                             </div>
+                            <div id="div-configuracoes-direito">
+                                <TextField variant="outlined" fullWidth={true} multiline={true}
+                                           placeholder="Ignorados" id="input-ignorar"
+                                           name="ignorar" onChange={this.handleInput}/>
+                            </div>
                         </div>
                         <div id="div-menu-configuracoes">
                             <div id="div-configuracoes-esquerdo">
@@ -183,6 +210,12 @@ class Configuracoes extends React.Component {
                         <div id="div-menu-configuracoes">
                             <div id="div-botao-salvar-configuracoes">
                                 <Button variant="outlined" onClick={this.salvarAlteracoes}>Salvar alterações</Button>
+                            </div>
+                        </div>
+                        <div id="div-menu-configuracoes">
+                            <div id="div-configuracoes-centro">
+                                <FormLabel>Qr Code de conexão</FormLabel>
+                                <CardMedia id="qrcode" image={qrcode}/>
                             </div>
                         </div>
                     </section>

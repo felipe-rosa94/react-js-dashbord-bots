@@ -17,7 +17,7 @@ import MenuInferior from '../components/MenuInferior'
 import Categoria from '../components/Categoria'
 
 const {REACT_APP_URL_MONGODB} = process.env
-const tabela = localStorage.getItem(`gp:tabela`)
+let tabela
 
 class Categorias extends React.Component {
 
@@ -205,6 +205,7 @@ class Categorias extends React.Component {
     }
 
     componentDidMount() {
+        tabela = localStorage.getItem(`gp:tabela`)
         this.consultarCategoria()
     }
 

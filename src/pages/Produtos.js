@@ -25,7 +25,7 @@ import {cleanAccents, request} from '../util'
 import {Cancel, Search, ExpandMore, ExpandLess} from '@material-ui/icons'
 
 const {REACT_APP_URL_MONGODB} = process.env
-const tabela = localStorage.getItem(`gp:tabela`)
+let tabela
 
 class Produtos extends React.Component {
 
@@ -263,6 +263,7 @@ class Produtos extends React.Component {
     }
 
     componentDidMount() {
+        tabela = localStorage.getItem(`gp:tabela`)
         this.consultarProdutos()
         this.consultarCategoria()
     }

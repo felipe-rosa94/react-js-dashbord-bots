@@ -23,6 +23,8 @@ class Login extends React.Component {
         if (data.length === 0) return alert('Usuário ou senha incorretos')
         const {table} = data[0]
         localStorage.setItem(`gp:tabela`, table)
+        sessionStorage.setItem(`gp:usuario`, usuario)
+        sessionStorage.setItem(`gp:senha`, senha)
         this.props.history.replace('/pedidos')
     }
 
