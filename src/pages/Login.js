@@ -16,7 +16,7 @@ class Login extends React.Component {
 
     onClickEntrar = async () => {
         const {usuario, senha} = this.state
-        const url = `${REACT_APP_URL_MONGODB}/userBots/?user=${usuario}&password=${senha}`
+        const url = `${REACT_APP_URL_MONGODB}/user/?user=${usuario}&password=${senha}`
         const conexao = {method: 'get'}
         const {returnCode, data, message} = await request(url, conexao)
         if (!returnCode) return alert(message)
