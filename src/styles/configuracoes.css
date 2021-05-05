@@ -1,52 +1,15 @@
-#configuracoes {
-    display: flex;
-    justify-content: center;
-}
-
-#section-body-configuracoes {
-    width: 50%;
-    display: flex;
-    flex-direction: column;
-}
-
-#div-menu-configuracoes {
-    display: flex;
-    flex-direction: row;
-    margin-top: 20px;
-}
-
-#div-configuracoes-esquerdo {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-}
-
-#div-configuracoes-centro {
+#div-definicao {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex: 1;
 }
 
-#div-configuracoes-direito {
+#div-site-whatsapp {
+    width: 50%;
     display: flex;
-    flex: 1;
     flex-direction: column;
-}
-
-#radio-group {
-    display: flex;
-    flex-direction: row;
-}
-
-#div-botao-salvar-configuracoes {
-    display: flex;
-    flex: 1;
+    align-items: center;
     justify-content: center;
-}
-
-#qrcode {
-    width: 200px;
-    height: 200px;
+    margin-top: 20px;
 }

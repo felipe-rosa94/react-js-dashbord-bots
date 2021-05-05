@@ -23,4 +23,9 @@ const phoneMask = phone => {
     }
 }
 
-export {request, cleanAccents, phoneMask, cleanPhone}
+const cepMask = cep => {
+    cep = cep.substring(0, 8)
+    return cep.replace(/[^\d]+/g, '')
+}
+
+export {request, cleanAccents, phoneMask, cleanPhone, cepMask}

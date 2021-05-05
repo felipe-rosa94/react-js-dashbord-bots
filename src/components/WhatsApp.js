@@ -1,4 +1,5 @@
 import React from 'react'
+import '../styles/whatsapp.css'
 import {
     Box,
     Button,
@@ -86,10 +87,10 @@ class WhatsApp extends React.Component {
             let url
             let conexao
             if (_id) {
-                url = `${REACT_APP_URL_MONGODB}/settings${tabela}/?id=${_id}`
+                url = `${REACT_APP_URL_MONGODB}/whatsApp-${tabela}/?id=${_id}`
                 conexao = {method: 'put', body: JSON.stringify(json)}
             } else {
-                url = `${REACT_APP_URL_MONGODB}/settings${tabela}`
+                url = `${REACT_APP_URL_MONGODB}/whatsApp-${tabela}`
                 conexao = {method: 'post', body: JSON.stringify(json)}
             }
             const {message} = await request(url, conexao)
@@ -103,7 +104,7 @@ class WhatsApp extends React.Component {
     consultarConfiguracoes = async () => {
         try {
             if (tabela === null) return
-            let url = `${REACT_APP_URL_MONGODB}/settings${tabela}`
+            let url = `${REACT_APP_URL_MONGODB}/whatsApp-${tabela}`
             const conexao = {method: 'get'}
             const {returnCode, message, data} = await request(url, conexao)
             if (!returnCode) return this.setState({dialogAviso: true, mensagemAviso: message})
@@ -130,7 +131,7 @@ class WhatsApp extends React.Component {
         setInterval(async () => {
             let usuario = sessionStorage.getItem(`gp:usuario`)
             let senha = sessionStorage.getItem(`gp:senha`)
-            const url = `${REACT_APP_URL_MONGODB}/user/?user=${usuario}&password=${senha}`
+            const url = `${REACT_APP_URL_MONGODB}/usuarios/?user=${usuario}&password=${senha}`
             const conexao = {method: 'get'}
             const {returnCode, data, message} = await request(url, conexao)
             if (!returnCode) return alert(message)
@@ -142,18 +143,18 @@ class WhatsApp extends React.Component {
 
     componentDidMount() {
         tabela = localStorage.getItem(`gp:tabela`)
-        this.consultarConfiguracoes()
-        this.consultaQrCode()
+        //this.consultarConfiguracoes()
+        //this.consultaQrCode()
     }
 
     render() {
         const {intervalo, whatsApp, email, ativo, dialogAviso, mensagemAviso, qrcode} = this.state
         return (
             <div>
-                <div id="configuracoes">
-                    <section id="section-body-configuracoes">
-                        <div id="div-menu-configuracoes">
-                            <div id="div-configuracoes-esquerdo">
+                <div id="whatsapp">
+                    <section id="section-body-whatsapp">
+                        <div id="div-menu-whatsapp">
+                            <div id="div-whatsapp-esquerdo">
                                 <TextField variant="outlined" fullWidth={true} multiline={true}
                                            placeholder="Mensagem de boas vindas" id="input-boas-vindas"
                                            name="boasVindas" onChange={this.handleInput}/>
@@ -163,7 +164,7 @@ class WhatsApp extends React.Component {
                                            name="agradecimento" onChange={this.handleInput}/>
                             </div>
                             <Box p={1}/>
-                            <div id="div-configuracoes-direito">
+                            <div id="div-whatsapp-direito">
                                 <TextField variant="outlined" fullWidth={true}
                                            placeholder="WhatsApp para notificações" id="input-telfone" name="whatsApp"
                                            value={whatsApp}
@@ -173,8 +174,8 @@ class WhatsApp extends React.Component {
                                            id="input-email" name="email" value={email} onChange={this.handleInput}/>
                             </div>
                         </div>
-                        <div id="div-menu-configuracoes">
-                            <div id="div-configuracoes-esquerdo">
+                        <div id="div-menu-whatsapp">
+                            <div id="div-whatsapp-esquerdo">
                                 <FormLabel>
                                     Defina um intervalo de tempo que mensagem pessoais não receberam a resposta
                                     automatima
@@ -189,14 +190,14 @@ class WhatsApp extends React.Component {
                                 </RadioGroup>
                             </div>
                             <Box p={1}/>
-                            <div id="div-configuracoes-direito">
+                            <div id="div-whatsapp-direito">
                                 <TextField variant="outlined" fullWidth={true} multiline={true}
                                            placeholder="Ignorados" id="input-ignorar"
                                            name="ignorar" onChange={this.handleInput}/>
                             </div>
                         </div>
-                        <div id="div-menu-configuracoes">
-                            <div id="div-configuracoes-esquerdo">
+                        <div id="div-menu-whatsapp">
+                            <div id="div-whatsapp-esquerdo">
                                 <FormLabel>Defina a ativação ou desativação das mensagens</FormLabel>
                                 <FormControlLabel
                                     control={<Switch checked={ativo} label={ativo ? 'Ativada' : 'Desativada'}
@@ -204,13 +205,13 @@ class WhatsApp extends React.Component {
                                 />
                             </div>
                         </div>
-                        <div id="div-menu-configuracoes">
-                            <div id="div-botao-salvar-configuracoes">
+                        <div id="div-menu-whatsapp">
+                            <div id="div-botao-salvar-whatsapp">
                                 <Button variant="outlined" onClick={this.salvarAlteracoes}>Salvar alterações</Button>
                             </div>
                         </div>
-                        <div id="div-menu-configuracoes">
-                            <div id="div-configuracoes-centro">
+                        <div id="div-menu-whatsapp">
+                            <div id="div-whatsapp-centro">
                                 <FormLabel>Qr Code de conexão</FormLabel>
                                 <CardMedia id="qrcode" image={qrcode}/>
                             </div>

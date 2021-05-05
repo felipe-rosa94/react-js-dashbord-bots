@@ -14,7 +14,7 @@ class Pedidos extends React.Component {
 
     consultarPedidos = async () => {
         const tabela = localStorage.getItem(`gp:tabela`)
-        let url = `${REACT_APP_URL_MONGODB}/orders${tabela}`
+        let url = `${REACT_APP_URL_MONGODB}/pedidos-${tabela}`
         let conexao = {method: 'get'}
         const {data} = await request(url, conexao)
         this.setState({pedidos: data})
@@ -32,7 +32,6 @@ class Pedidos extends React.Component {
                     <section id="section-body-pedidos">
                         {pedidos.map((i, index) => (<Pedido key={index} data={i}/>))}
                     </section>
-
                     <MenuInferior pagina="pedidos"/>
                 </section>
             </div>

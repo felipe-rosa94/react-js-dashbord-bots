@@ -117,7 +117,7 @@ class Produtos extends React.Component {
     deletarCategoria = async () => {
         try {
             const {idDeletar} = this.state
-            let url = `${REACT_APP_URL_MONGODB}/products${tabela}/?id=${idDeletar}`
+            let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}/?id=${idDeletar}`
             let conexao = {method: 'delete'}
             const {returnCode, message} = await request(url, conexao)
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
@@ -130,7 +130,7 @@ class Produtos extends React.Component {
 
     alterarProduto = async (id, json) => {
         try {
-            let url = `${REACT_APP_URL_MONGODB}/products${tabela}/?id=${id}`
+            let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}/?id=${id}`
             let conexao = {method: 'put', body: JSON.stringify(json)}
             const {returnCode, message} = await request(url, conexao)
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
@@ -194,7 +194,7 @@ class Produtos extends React.Component {
     adicionar = async () => {
         try {
             const {produto, preco, categorias, categoria, imageBase64, dados, ativo} = this.state
-            let url = `${REACT_APP_URL_MONGODB}/products${tabela}`
+            let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}`
             let ordem = dados.length
             let descricao = document.getElementById('descricao').value
             const conexao = {
@@ -224,7 +224,7 @@ class Produtos extends React.Component {
 
     consultarProdutos = async () => {
         try {
-            let url = `${REACT_APP_URL_MONGODB}/products${tabela}`
+            let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}`
             const conexao = {method: 'get'}
             const {returnCode, message, data} = await request(url, conexao)
             if (returnCode) {

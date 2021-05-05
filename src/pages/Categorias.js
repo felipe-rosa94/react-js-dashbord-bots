@@ -89,7 +89,7 @@ class Categorias extends React.Component {
 
     alterarCategoria = async (id, json) => {
         try {
-            let url = `${REACT_APP_URL_MONGODB}/category${tabela}/?id=${id}`
+            let url = `${REACT_APP_URL_MONGODB}/categoria-${tabela}/?id=${id}`
             let conexao = {method: 'put', body: JSON.stringify(json)}
             const {returnCode, message} = await request(url, conexao)
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
@@ -108,7 +108,7 @@ class Categorias extends React.Component {
     deletarCategoria = async () => {
         try {
             const {idDeletar} = this.state
-            let url = `${REACT_APP_URL_MONGODB}/category${tabela}/?id=${idDeletar}`
+            let url = `${REACT_APP_URL_MONGODB}/categoria-${tabela}/?id=${idDeletar}`
             let conexao = {method: 'delete'}
             const {returnCode, message} = await request(url, conexao)
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
@@ -166,7 +166,7 @@ class Categorias extends React.Component {
         try {
             const {dados, categoria, imageBase64} = this.state
             if (!categoria) return this.setState({dialogAviso: true, mensagemAviso: 'Coloque o nome de categoria'})
-            let url = `${REACT_APP_URL_MONGODB}/category${tabela}`
+            let url = `${REACT_APP_URL_MONGODB}/categoria-${tabela}`
             let ordem = dados.length
             const conexao = {
                 method: 'post',
@@ -186,7 +186,7 @@ class Categorias extends React.Component {
 
     consultarCategoria = async () => {
         try {
-            let url = `${REACT_APP_URL_MONGODB}/category${tabela}`
+            let url = `${REACT_APP_URL_MONGODB}/categoria-${tabela}`
             const conexao = {method: 'get'}
             const {returnCode, message, data} = await request(url, conexao)
             if (returnCode) {
