@@ -3,7 +3,7 @@ import {BrowserRouter, Route, Switch} from 'react-router-dom'
 import Login from './pages/Login'
 import Pedidos from './pages/Pedidos'
 import Categorias from './pages/Categorias'
-import Produtos from './pages/Produtos'
+import Produtos from './pages/HomeProdutosAdicionas'
 import Configuracoes from './pages/Configuracoes'
 
 const App = () => {

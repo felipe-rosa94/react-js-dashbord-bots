@@ -11,20 +11,22 @@
 
 #div-menu-site {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     margin-top: 20px;
 }
 
 #div-site-esquerdo {
     display: flex;
     flex: 1;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 #div-site-direito {
     display: flex;
     flex: 1;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 #label-descricao {
@@ -55,6 +57,7 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    align-items: center;
     padding: 10px;
 }
 
@@ -102,4 +105,10 @@
 
 #card-content-banner {
     padding: 10px;
+}
+
+@media screen and (max-width: 600px) {
+    #section-body-site {
+        width: 95%;
+    }
 }

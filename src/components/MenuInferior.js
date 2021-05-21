@@ -39,7 +39,7 @@ class MenuInferior extends React.Component {
                         label="Categorias"
                         style={pagina === 'categorias' ? {color: '#82af69'} : {color: 'white'}}
                         icon={<CategoryRounded id="icons"
-                                        style={pagina === 'categorias' ? {color: '#82af69'} : {color: 'white'}}/>}/>
+                                               style={pagina === 'categorias' ? {color: '#82af69'} : {color: 'white'}}/>}/>
                     <BottomNavigationAction
                         label="Produtos"
                         style={pagina === 'produtos' ? {color: '#009688'} : {color: 'white'}}
@@ -49,7 +49,7 @@ class MenuInferior extends React.Component {
                         label="Configurações"
                         style={pagina === 'configuracoes' ? {color: '#960064'} : {color: 'white'}}
                         icon={<SettingsRounded id="icons"
-                                                style={pagina === 'configuracoes' ? {color: '#960064'} : {color: 'white'}}/>}/>
+                                               style={pagina === 'configuracoes' ? {color: '#960064'} : {color: 'white'}}/>}/>
                 </BottomNavigation>
             </div>
         )

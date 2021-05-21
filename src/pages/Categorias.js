@@ -8,16 +8,38 @@ import {
     DialogContentText,
     DialogTitle,
     Divider,
-    FormLabel
+    FormLabel,
+    Button,
+    Card,
+    Dialog,
+    DialogActions,
+    TextField,
+    Input
 } from '@material-ui/core'
-import {Cancel, ExpandLess, ExpandMore, Search} from '@material-ui/icons'
-import {Button, Card, Dialog, DialogActions, TextField, Input} from '@material-ui/core'
+import {
+    Cancel,
+    ExpandLess,
+    ExpandMore,
+    Search
+} from '@material-ui/icons'
+import {
+    createMuiTheme,
+    MuiThemeProvider
+} from '@material-ui/core/styles'
 import {request, cleanAccents} from '../util'
 import MenuInferior from '../components/MenuInferior'
 import Categoria from '../components/Categoria'
 
 const {REACT_APP_URL_MONGODB} = process.env
 let tabela
+
+const theme = createMuiTheme({
+    palette: {
+        primary: {
+            main: '#212121'
+        }
+    },
+})
 
 class Categorias extends React.Component {
 
@@ -28,7 +50,10 @@ class Categorias extends React.Component {
         busca: '',
         categoria: '',
         categorias: [],
-        dados: []
+        dados: [],
+        dialogImagem: false,
+        dialogAviso: false,
+        dialogCaterogia: false
     }
 
     handleImage = async e => {
@@ -44,7 +69,7 @@ class Categorias extends React.Component {
         }
     }
 
-    handleInput = e => this.setState({[e.target.name]: e.target.value.toUpperCase()})
+    handleInput = e => this.setState({[e.target.name]: e.target.value})
 
     handleCategoria = async objeto => {
         let {acao, dados: {_id, categoria, ativo, imagem, ordem}} = objeto
@@ -228,90 +253,93 @@ class Categorias extends React.Component {
         } = this.state
         return (
             <div>
-                <div id="categorias">
-                    <section id="section-body-categorias">
-                        <div id="div-menu-categorias">
-                            <Card id="card-categorias">
-                                <CardContent id="card-content-categorias">
-                                    <TextField variant="outlined" fullWidth={true} placeholder="Buscar Categorias"
-                                               value={busca} id="input-categoria" name="busca"
-                                               onChange={this.handleInput}/>
-                                    <Box p={1}/>
-                                    {buscando && <Cancel id="icone" onClick={this.onClickCancelaBusca}/>}
-                                    <Search id="icone" onClick={this.onClickBusca}/>
-                                </CardContent>
-                            </Card>
-                            {
-                                vizualizar &&
+                <MuiThemeProvider theme={theme}>
+                    <div id="categorias">
+                        <section id="section-body-categorias">
+                            <div id="div-menu-categorias">
                                 <Card id="card-categorias">
                                     <CardContent id="card-content-categorias">
-                                        <div id="div-formulario-inputs-categoria">
-                                            <div id="div-inputs-categorias">
-                                                <TextField variant="outlined" fullWidth={true} placeholder="Categoria"
-                                                           value={categoria}
-                                                           id="input-categoria" name="categoria"
-                                                           onChange={this.handleInput}/>
-                                            </div>
-                                            <div id="div-inputs-categorias">
-                                                <Input id="input-image" type="file"
-                                                       onChange={(e) => this.handleImage(e)}/>
-                                                <Box p={1}/>
-                                                {imagem && <CardMedia id="card-media-imagem-pequena" image={imagem}/>}
-                                            </div>
-                                        </div>
+                                        <TextField variant="outlined" fullWidth={true} placeholder="Buscar Categorias"
+                                                   value={busca} name="busca" onChange={this.handleInput}/>
+                                        <Box p={1}/>
+                                        {buscando && <Cancel id="icone" onClick={this.onClickCancelaBusca}/>}
+                                        <Search id="icone" onClick={this.onClickBusca}/>
                                     </CardContent>
-                                    <div id="div-botao-salvar-categorias">
-                                        <Button variant="outlined" onClick={this.onClickAdicionar}>Salvar</Button>
-                                        {editando && <Box p={1}/>}
-                                        {
-                                            editando &&
-                                            <Button variant="outlined" onClick={this.onClickCancelaEdicao}>
-                                                Cancelar
-                                            </Button>
-                                        }
-                                    </div>
                                 </Card>
-                            }
-                            <div id="div-vizualizar-cadastro" onClick={this.visualizar}>
-                                <div id="div-botao-vizualizar">
-                                    <FormLabel
-                                        id="label-vizualizar">{!vizualizar ? 'Maximizar' : 'Minimizar'}</FormLabel>
-                                    {!vizualizar ? <ExpandMore/> : <ExpandLess/>}
+                                {
+                                    vizualizar &&
+                                    <Card id="card-categorias">
+                                        <CardContent id="card-content-categorias">
+                                            <div id="div-formulario-inputs-categoria">
+                                                <div id="div-inputs-categorias">
+                                                    <TextField variant="outlined" fullWidth={true}
+                                                               placeholder="Categoria"
+                                                               value={categoria} name="categoria"
+                                                               onChange={this.handleInput}/>
+                                                </div>
+                                                <div id="div-inputs-categorias">
+                                                    <Input id="input-image" type="file"
+                                                           onChange={(e) => this.handleImage(e)}/>
+                                                    <Box p={1}/>
+                                                    {imagem &&
+                                                    <CardMedia id="card-media-imagem-pequena" image={imagem}/>}
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                        <div id="div-botao-salvar-categorias">
+                                            <Button variant="outlined" onClick={this.onClickAdicionar}>Salvar</Button>
+                                            {editando && <Box p={1}/>}
+                                            {
+                                                editando &&
+                                                <Button variant="outlined" onClick={this.onClickCancelaEdicao}>
+                                                    Cancelar
+                                                </Button>
+                                            }
+                                        </div>
+                                    </Card>
+                                }
+                                <div id="div-vizualizar-cadastro" onClick={this.visualizar}>
+                                    <div id="div-botao-vizualizar">
+                                        <FormLabel
+                                            id="label-vizualizar">{!vizualizar ? 'Maximizar' : 'Minimizar'}</FormLabel>
+                                        {!vizualizar ? <ExpandMore/> : <ExpandLess/>}
+                                    </div>
                                 </div>
+                                <Divider id="divider"/>
                             </div>
-                            <Divider id="divider"/>
-                        </div>
-                        <div id="div-categorias">
-                            {
-                                categorias.map((i, index) => (
-                                    <Categoria key={index} data={i} handleChange={this.handleCategoria.bind(this)}/>))
-                            }
-                        </div>
-                    </section>
-                </div>
-                <MenuInferior pagina="categorias"/>
-                <Dialog open={dialogCaterogia} onClose={this.cancelaDeletar}>
-                    <DialogTitle>Deletar</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>{`Deseja deletar a categoria ${categoriaDeletar} ?`}</DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button color="primary" onClick={this.confirmaDeletar}>Sim</Button>
-                        <Button color="primary" onClick={this.cancelaDeletar}>Não</Button>
-                    </DialogActions>
-                </Dialog>
-                <Dialog open={dialogImagem} onClose={this.cancelaImagem}>
-                    <DialogTitle>{tituloCategoria}</DialogTitle>
-                    <DialogContent id="card-content-imagem">
-                        <CardMedia id="card-image" image={imagemCategoria}/>
-                    </DialogContent>
-                </Dialog>
-                <Dialog open={dialogAviso} onClose={this.cancelaAviso}>
-                    <DialogTitle>Aviso</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>{mensagemAviso}</DialogContentText>
-                    </DialogContent>
-                </Dialog>
+                            <div id="div-categorias">
+                                {
+                                    categorias.map((i, index) => (
+                                        <Categoria key={index} data={i}
+                                                   handleChange={this.handleCategoria.bind(this)}/>))
+                                }
+                            </div>
+                        </section>
+                    </div>
+                    <MenuInferior pagina="categorias"/>
+                    <Dialog open={dialogCaterogia} onClose={this.cancelaDeletar}>
+                        <DialogTitle>Deletar</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>{`Deseja deletar a categoria ${categoriaDeletar} ?`}</DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button color="primary" onClick={this.confirmaDeletar}>Sim</Button>
+                            <Button color="primary" onClick={this.cancelaDeletar}>Não</Button>
+                        </DialogActions>
+                    </Dialog>
+                    <Dialog open={dialogImagem} onClose={this.cancelaImagem}>
+                        <DialogTitle>{tituloCategoria}</DialogTitle>
+                        <DialogContent id="card-content-imagem">
+                            <CardMedia id="card-image" image={imagemCategoria}/>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={dialogAviso} onClose={this.cancelaAviso}>
+                        <DialogTitle>Aviso</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>{mensagemAviso}</DialogContentText>
+                        </DialogContent>
+                    </Dialog>
+                </MuiThemeProvider>
             </div>
         )
     }

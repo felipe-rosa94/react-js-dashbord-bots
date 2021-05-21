@@ -30,7 +30,7 @@
 }
 
 #div-menu-produtos {
-    top: 0;
+    top: 55px;
     left: auto;
     right: 0;
     z-index: 1100;
@@ -84,6 +84,11 @@
     width: 100px;
     height: 100px;
     border-radius: 4px;
+}
+
+#div-escolher-etapas {
+    display: flex;
+    flex-direction: column;
 }
 
 @media screen and (max-width: 1440px) {

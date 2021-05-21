@@ -28,4 +28,9 @@ const cepMask = cep => {
     return cep.replace(/[^\d]+/g, '')
 }
 
-export {request, cleanAccents, phoneMask, cleanPhone, cepMask}
+const chave = () => {
+    let date = new Date()
+    return date.getTime()
+}
+
+export {request, cleanAccents, phoneMask, cleanPhone, cepMask, chave}
