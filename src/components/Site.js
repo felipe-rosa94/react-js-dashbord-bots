@@ -285,61 +285,69 @@ class Site extends React.Component {
             <MuiThemeProvider theme={theme}>
                 <div>
                     <div id="site">
-                        <section id="section-body-site">
-                            <div id="div-menu-site">
-                                <div id="div-site-esquerdo">
-                                    <div>
-                                        <FormLabel id="label-descricao">Título que aparecera no site</FormLabel>
-                                        <TextField variant="outlined" fullWidth={true} placeholder="Título no site"
-                                                   value={tituloSite} name="tituloSite" onChange={this.handleInput}/>
+                        <Card id="card-categorias">
+                            <CardContent id="card-content-categorias">
+                                <section id="section-body-site">
+                                    <div id="div-menu-site">
+                                        <div id="div-site-esquerdo">
+                                            <div>
+                                                <FormLabel id="label-descricao">Título que aparecera no site</FormLabel>
+                                                <TextField variant="outlined" fullWidth={true}
+                                                           placeholder="Título no site"
+                                                           value={tituloSite} name="tituloSite"
+                                                           onChange={this.handleInput}/>
+                                            </div>
+                                            <Box p={1}/>
+                                            <div>
+                                                <FormLabel id="label-descricao">WhatsApp de contato</FormLabel>
+                                                <TextField variant="outlined" fullWidth={true} placeholder="WhatsApp"
+                                                           value={whatsApp} name="whatsApp"
+                                                           onChange={this.handleInput}/>
+                                            </div>
+                                        </div>
+                                        <Box p={1}/>
+                                        <div id="div-site-direito">
+                                            <div id="div-bloqueio-ceps">
+                                                <FormLabel id="label-descricao">Raios de atendimento</FormLabel>
+                                                <Button variant="outlined" onClick={this.onClickBloqueaRaios}>Adicionar
+                                                    Raio</Button>
+                                            </div>
+                                            <Box p={1}/>
+                                            <div id="div-bloqueio-ceps">
+                                                <FormLabel id="label-descricao">Restrição de CEPS</FormLabel>
+                                                <Button variant="outlined" onClick={this.onClickBloqueaCeps}>Bloquear
+                                                    CEP</Button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <Box p={1}/>
-                                    <div>
-                                        <FormLabel id="label-descricao">WhatsApp de contato</FormLabel>
-                                        <TextField variant="outlined" fullWidth={true} placeholder="WhatsApp"
-                                                   value={whatsApp} name="whatsApp" onChange={this.handleInput}/>
+                                    <div id="div-menu-site-banners">
+                                        <Input id="input-image" type="file"
+                                               onChange={(e) => this.handleImage(e)}/>
+                                        <Box p={1}/>
+                                        <div id="div-banners">
+                                            {
+                                                banners.map((b, index) => (
+                                                    <Card id="card-banner" key={index}>
+                                                        <CardContent id="card-content-banner">
+                                                            <CardMedia image={b} id="card-media-banners"/>
+                                                            <Delete id="icone"
+                                                                    onClick={() => this.onClickDeleteBanner(b)}/>
+                                                        </CardContent>
+                                                    </Card>
+                                                ))
+                                            }
+                                        </div>
                                     </div>
-                                </div>
-                                <Box p={1}/>
-                                <div id="div-site-direito">
-                                    <div id="div-bloqueio-ceps">
-                                        <FormLabel id="label-descricao">Raios de atendimento</FormLabel>
-                                        <Button variant="outlined" onClick={this.onClickBloqueaRaios}>Adicionar
-                                            Raio</Button>
-                                    </div>
-                                    <Box p={1}/>
-                                    <div id="div-bloqueio-ceps">
-                                        <FormLabel id="label-descricao">Restrição de CEPS</FormLabel>
-                                        <Button variant="outlined" onClick={this.onClickBloqueaCeps}>Bloquear
-                                            CEP</Button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="div-menu-site-banners">
-                                <Input id="input-image" type="file"
-                                       onChange={(e) => this.handleImage(e)}/>
-                                <Box p={1}/>
-                                <div id="div-banners">
-                                    {
-                                        banners.map((b, index) => (
-                                            <Card id="card-banner" key={index}>
-                                                <CardContent id="card-content-banner">
-                                                    <CardMedia image={b} id="card-media-banners"/>
-                                                    <Delete id="icone" onClick={() => this.onClickDeleteBanner(b)}/>
-                                                </CardContent>
-                                            </Card>
-                                        ))
-                                    }
-                                </div>
-                            </div>
 
-                            <div id="div-menu-site">
-                                <div id="div-botao-salvar-site">
-                                    <Button variant="outlined" onClick={this.salvarAlteracoes}>Salvar
-                                        alterações</Button>
-                                </div>
-                            </div>
-                        </section>
+                                    <div id="div-menu-site">
+                                        <div id="div-botao-salvar-site">
+                                            <Button variant="outlined" onClick={this.salvarAlteracoes}>Salvar
+                                                alterações</Button>
+                                        </div>
+                                    </div>
+                                </section>
+                            </CardContent>
+                        </Card>
                     </div>
                     <Dialog open={dialogCeps} onClose={this.cancelaCeps}>
                         <DialogTitle>CEPS Bloqueados</DialogTitle>

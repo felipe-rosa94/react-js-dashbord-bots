@@ -1,6 +1,6 @@
 import React from 'react'
 import '../styles/configuracoes.css'
-import {FormControlLabel, FormLabel, Switch} from '@material-ui/core'
+import {AppBar, FormControlLabel, FormLabel, Switch, Tab, Tabs} from '@material-ui/core'
 import MenuInferior from '../components/MenuInferior'
 import WhatsApp from '../components/WhatsApp'
 import Site from '../components/Site'
@@ -9,6 +9,8 @@ import {
     createMuiTheme,
     MuiThemeProvider
 } from '@material-ui/core/styles'
+import Produtos from "./Produtos";
+import Adicionais from "./Adicionais";
 
 const theme = createMuiTheme({
     palette: {
@@ -21,25 +23,35 @@ const theme = createMuiTheme({
 class Configuracoes extends React.Component {
 
     state = {
-        site: true
+        tabIndex: 0
     }
 
-    onClickAlterar = e => this.setState({site: e.target.checked})
+    handleTabs = (event, newValue) => {
+        this.setState({tabIndex: newValue})
+    }
 
     render() {
-        const {site} = this.state
+        const {tabIndex} = this.state
         return (
             <MuiThemeProvider theme={theme}>
                 <div id="configuracoes">
-                    <div id="div-definicao">
-                        <div id="div-site-whatsapp">
-                            <FormLabel>Alterar entre configurções de Site é WhatsApp</FormLabel>
-                            <FormControlLabel label={site ? 'Site' : 'WhatsApp'} control={
-                                <Switch color="primary" checked={site} onChange={(e) => this.onClickAlterar(e)}/>}
-                            />
-                        </div>
-                    </div>
-                    {site ? <Site/> : <WhatsApp/>}
+                    <AppBar position="sticky">
+                        <Tabs indicatorColor="primary"
+                              variant="fullWidth"
+                              value={tabIndex}
+                              onChange={this.handleTabs}
+                              aria-label="simple tabs example">
+                            <Tab label="Site"/>
+                            <Tab label="WhatsApp"/>
+                        </Tabs>
+                    </AppBar>
+                    {(() => {
+                        if (tabIndex === 0) {
+                            return (<Site/>)
+                        } else if (tabIndex === 1) {
+                            return (<WhatsApp/>)
+                        }
+                    })()}
                     <MenuInferior pagina="configuracoes"/>
                 </div>
             </MuiThemeProvider>
