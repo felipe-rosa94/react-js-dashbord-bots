@@ -14,7 +14,7 @@ import {
     Dialog,
     DialogActions,
     TextField,
-    Input
+    Input, CircularProgress
 } from '@material-ui/core'
 import {
     Cancel,
@@ -53,7 +53,9 @@ class Categorias extends React.Component {
         dados: [],
         dialogImagem: false,
         dialogAviso: false,
-        dialogCaterogia: false
+        dialogCaterogia: false,
+        dialogCarregando: false,
+        mensagemCarregendo: ''
     }
 
     handleImage = async e => {
@@ -114,9 +116,11 @@ class Categorias extends React.Component {
 
     alterarCategoria = async (id, json) => {
         try {
+            this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, alterando categoria...'})
             let url = `${REACT_APP_URL_MONGODB}/categoria-${tabela}/?id=${id}`
             let conexao = {method: 'put', body: JSON.stringify(json)}
             const {returnCode, message} = await request(url, conexao)
+            this.setState({dialogCarregando: false})
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
             await this.consultarCategoria()
         } catch (e) {
@@ -133,11 +137,16 @@ class Categorias extends React.Component {
     deletarCategoria = async () => {
         try {
             const {idDeletar} = this.state
+            this.setState({
+                dialogCaterogia: false,
+                dialogCarregando: true,
+                mensagemCarregendo: 'Aguarde, deletando categoria...'
+            })
             let url = `${REACT_APP_URL_MONGODB}/categoria-${tabela}/?id=${idDeletar}`
             let conexao = {method: 'delete'}
             const {returnCode, message} = await request(url, conexao)
+            this.setState({dialogCarregando: false})
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
-            this.setState({dialogCaterogia: false})
             this.consultarCategoria()
         } catch (e) {
             console.error(e.message)
@@ -191,6 +200,7 @@ class Categorias extends React.Component {
         try {
             const {dados, categoria, imageBase64} = this.state
             if (!categoria) return this.setState({dialogAviso: true, mensagemAviso: 'Coloque o nome de categoria'})
+            this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, adicionando categoria...'})
             let url = `${REACT_APP_URL_MONGODB}/categoria-${tabela}`
             let ordem = dados.length
             const conexao = {
@@ -198,6 +208,7 @@ class Categorias extends React.Component {
                 body: JSON.stringify({categoria: categoria, imagem: imageBase64, ativo: true, ordem: ordem})
             }
             const {returnCode, message} = await request(url, conexao)
+            this.setState({dialogCarregando: false})
             if (returnCode) {
                 this.setState({categoria: ''})
                 await this.consultarCategoria()
@@ -249,7 +260,9 @@ class Categorias extends React.Component {
             tituloCategoria,
             vizualizar,
             imagem,
-            editando
+            editando,
+            dialogCarregando,
+            mensagemCarregendo
         } = this.state
         return (
             <div>
@@ -331,6 +344,12 @@ class Categorias extends React.Component {
                         <DialogTitle>{tituloCategoria}</DialogTitle>
                         <DialogContent id="card-content-imagem">
                             <CardMedia id="card-image" image={imagemCategoria}/>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={dialogCarregando}>
+                        <DialogContent id="dialog-carregando">
+                            <CircularProgress size={30}/>
+                            <DialogContentText id="label-carregando">{mensagemCarregendo}</DialogContentText>
                         </DialogContent>
                     </Dialog>
                     <Dialog open={dialogAviso} onClose={this.cancelaAviso}>

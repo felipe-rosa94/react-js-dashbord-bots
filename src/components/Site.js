@@ -5,13 +5,13 @@ import {
     Button,
     Card,
     CardContent,
-    CardMedia,
+    CardMedia, Checkbox,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle,
-    Divider,
+    Divider, FormControlLabel,
     FormLabel, Input,
     TextField
 } from '@material-ui/core'
@@ -20,7 +20,7 @@ import {AddCircleOutline, Delete} from '@material-ui/icons'
 
 import {
     createMuiTheme,
-    MuiThemeProvider
+    MuiThemeProvider, withStyles
 } from '@material-ui/core/styles'
 
 const theme = createMuiTheme({
@@ -31,7 +31,11 @@ const theme = createMuiTheme({
     },
 })
 
-const {REACT_APP_URL_MONGODB} = process.env
+const CheckButton = withStyles({
+    checked: {},
+})(props => <Checkbox color="default" {...props} />)
+
+const {REACT_APP_URL_MONGODB, REACT_APP_URL_POSITION} = process.env
 let tabela
 
 class Site extends React.Component {
@@ -42,14 +46,18 @@ class Site extends React.Component {
         dialogRaios: false,
         mensagemAviso: '',
         cep: '',
-        metro: '',
+        distancia: '',
         taxa: '',
         ceps: [],
         cepsFiltro: [],
         raios: [],
         raiosFiltro: [],
         imagem: '',
-        banners: []
+        banners: [],
+        observacao: true,
+        dinheiro: true,
+        cartao: true,
+        online: false
     }
 
     handleImage = e => {
@@ -100,13 +108,15 @@ class Site extends React.Component {
         if (value !== '') {
             let array = []
             raios.forEach(c => {
-                if (c.metro.includes(value)) array.push(c)
+                if (c.distancia.toString().includes(value)) array.push(c)
             })
             this.setState({raiosFiltro: array})
         } else {
             this.setState({raiosFiltro: raios})
         }
     }
+
+    onCheck = e => this.setState({[e.target.name]: e.target.checked})
 
     onClickBloquear = () => this.bloquear()
 
@@ -130,15 +140,18 @@ class Site extends React.Component {
 
     raio = async () => {
         try {
-            const {metro, taxa} = this.state
-            if (metro === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque um metro válido'})
+            const {distancia, taxa} = this.state
+            if (distancia === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque um metro válido'})
             if (taxa === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque uma taxa válida'})
             let url = `${REACT_APP_URL_MONGODB}/raio-${tabela}`
-            const conexao = {method: 'post', body: JSON.stringify({metro: metro, taxa: taxa})}
+            const conexao = {
+                method: 'post',
+                body: JSON.stringify({distancia: parseInt(distancia), taxa: parseInt(taxa)})
+            }
             const {returnCode} = await request(url, conexao)
             if (returnCode) {
                 await this.consultaRaios()
-                this.setState({metro: '', taxa: ''})
+                this.setState({distancia: '', taxa: ''})
             }
         } catch (e) {
             console.log(e.message)
@@ -224,13 +237,29 @@ class Site extends React.Component {
             const conexao = {method: 'get'}
             const {returnCode, message, data} = await request(url, conexao)
             if (!returnCode) return this.setState({dialogAviso: true, mensagemAviso: message})
-            const {_id, tituloSite, whatsApp, raio, banners} = data[0]
+            const {
+                _id,
+                tituloSite,
+                whatsApp,
+                raio,
+                banners,
+                observacao,
+                dinheiro,
+                cartao,
+                online,
+                endereco
+            } = data[0]
             this.setState({
                 _id: _id,
                 tituloSite: tituloSite,
                 whatsApp: whatsApp,
                 raio: raio,
-                banners: banners
+                banners: banners,
+                observacao: observacao,
+                dinheiro: dinheiro,
+                cartao: cartao,
+                online: online,
+                endereco: endereco
             })
         } catch (e) {
             console.log(e.message)
@@ -238,12 +267,29 @@ class Site extends React.Component {
     }
 
     salvarAlteracoes = async () => {
-        const {_id, tituloSite, whatsApp, raio, banners} = this.state
+        let {
+            _id,
+            tituloSite,
+            whatsApp,
+            raio,
+            banners,
+            observacao,
+            dinheiro,
+            cartao,
+            online,
+            endereco
+        } = this.state
+
         let json = {
             tituloSite: tituloSite,
             whatsApp: whatsApp,
             raio: raio,
-            banners: banners
+            banners: banners,
+            observacao: observacao,
+            dinheiro: dinheiro,
+            cartao: cartao,
+            online: online,
+            endereco: endereco
         }
         let url
         let conexao
@@ -277,9 +323,14 @@ class Site extends React.Component {
             whatsApp,
             banners,
             dialogRaios,
-            metro,
+            distancia,
             taxa,
-            raiosFiltro
+            raiosFiltro,
+            observacao,
+            dinheiro,
+            cartao,
+            online,
+            endereco
         } = this.state
         return (
             <MuiThemeProvider theme={theme}>
@@ -288,6 +339,18 @@ class Site extends React.Component {
                         <Card id="card-categorias">
                             <CardContent id="card-content-categorias">
                                 <section id="section-body-site">
+
+                                    <div id="div-menu-site">
+                                        <div id="div-site-esquerdo">
+                                            <div>
+                                                <FormLabel id="label-descricao">Endereço loja</FormLabel>
+                                                <TextField variant="outlined" fullWidth={true} placeholder="Endereço"
+                                                           value={endereco} name="endereco"
+                                                           onChange={this.handleInput}/>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div id="div-menu-site">
                                         <div id="div-site-esquerdo">
                                             <div>
@@ -320,6 +383,26 @@ class Site extends React.Component {
                                             </div>
                                         </div>
                                     </div>
+
+
+                                    <div id="div-menu-site">
+                                        <FormLabel id="label-descricao">Permissões</FormLabel>
+                                        <FormControlLabel control={<CheckButton/>} name="observacao"
+                                                          label="Permitir obsevação na sacola" checked={observacao}
+                                                          onChange={this.onCheck}/>
+
+                                        <FormLabel id="label-descricao">Formas de pagamento</FormLabel>
+                                        <FormControlLabel control={<CheckButton/>} name="dinheiro"
+                                                          label="Dinheiro" checked={dinheiro}
+                                                          onChange={this.onCheck}/>
+                                        <FormControlLabel control={<CheckButton/>} name="cartao"
+                                                          label="Cartão (maquininha)" checked={cartao}
+                                                          onChange={this.onCheck}/>
+                                        <FormControlLabel control={<CheckButton/>} name="online"
+                                                          label="Pagamento Online" checked={online}
+                                                          onChange={this.onCheck}/>
+                                    </div>
+
                                     <div id="div-menu-site-banners">
                                         <Input id="input-image" type="file"
                                                onChange={(e) => this.handleImage(e)}/>
@@ -338,6 +421,7 @@ class Site extends React.Component {
                                             }
                                         </div>
                                     </div>
+
 
                                     <div id="div-menu-site">
                                         <div id="div-botao-salvar-site">
@@ -387,7 +471,8 @@ class Site extends React.Component {
                         </div>
                         <Divider/>
                         <div id="div-formularios-ceps">
-                            <TextField variant="outlined" fullWidth={true} placeholder="Raio" name="metro" value={metro}
+                            <TextField variant="outlined" fullWidth={true} placeholder="Raio" name="distancia"
+                                       value={distancia}
                                        onChange={this.handleInput}/>
                             <Box p={1}/>
                             <TextField variant="outlined" fullWidth={true} placeholder="Taxa" name="taxa" value={taxa}
@@ -402,7 +487,7 @@ class Site extends React.Component {
                                     <Card id="card-cep" key={index}>
                                         <CardContent id="card-content-cep">
                                             <FormLabel
-                                                id="">{`Metros ${r.metro}, Taxa: ${parseFloat(r.taxa).toLocaleString('pt-BR', {
+                                                id="">{`Metros ${r.distancia}, Taxa: ${parseFloat(r.taxa).toLocaleString('pt-BR', {
                                                 style: 'currency',
                                                 currency: 'BRL'
                                             })}`}</FormLabel>

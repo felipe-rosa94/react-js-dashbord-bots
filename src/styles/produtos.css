@@ -91,6 +91,20 @@
     flex-direction: column;
 }
 
+#dialog-carregando {
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+}
+
+#label-carregando {
+    margin: 4px 8px;
+}
+
+#label-titulo-adicional {
+    margin: 4px;
+}
+
 @media screen and (max-width: 1440px) {
     #section-body-produtos {
         width: 65%;

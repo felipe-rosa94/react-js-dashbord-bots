@@ -33,4 +33,8 @@ const chave = () => {
     return date.getTime()
 }
 
-export {request, cleanAccents, phoneMask, cleanPhone, cepMask, chave}
+const idPedido = id_pedido => {
+    return `#${id_pedido.substring(id_pedido.length - 5)}`
+}
+
+export {request, cleanAccents, phoneMask, cleanPhone, cepMask, chave, idPedido}

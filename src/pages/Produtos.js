@@ -19,7 +19,7 @@ import {
     Select,
     TextField,
     FormControlLabel,
-    Checkbox
+    Checkbox, CircularProgress
 } from '@material-ui/core'
 import Produto from '../components/Produto'
 import {cleanAccents, request} from '../util'
@@ -51,10 +51,13 @@ class Produtos extends React.Component {
         etapasProduto: [],
         dados: [],
         ativo: true,
+        mensagemCarregendo: 'Carregando',
         dialogEtapas: false,
         dialogAviso: false,
         dialogImagem: false,
-        dialogProduto: false
+        dialogProduto: false,
+        dialogCarregando: false,
+        listaEtapas: false
     }
 
     handleImage = e => {
@@ -73,7 +76,10 @@ class Produtos extends React.Component {
     handleInput = e => this.setState({[e.target.name]: isNaN(e.target.value) ? e.target.value : e.target.value})
 
     handleProdutos = async objeto => {
-        let {acao, dados: {_id, produto, ativo, imagem, ordem, preco, descricao, indexCategoria, codigo}} = objeto
+        let {
+            acao,
+            dados: {_id, produto, ativo, imagem, ordem, preco, descricao, indexCategoria, codigo, etapasProduto}
+        } = objeto
         const {dados} = this.state
         if (acao === 'ativo') {
             await this.alterarProduto(_id, {ativo: ativo})
@@ -95,10 +101,12 @@ class Produtos extends React.Component {
                 editando: true,
                 _id: _id,
                 produto: produto,
+                etapasProduto: etapasProduto,
                 preco: preco,
                 imagem: imagem,
                 categoria: indexCategoria,
-                codigo: codigo
+                codigo: codigo,
+                listaEtapas: true
             })
             setTimeout(() => {
                 document.getElementById('descricao').value = descricao
@@ -130,11 +138,16 @@ class Produtos extends React.Component {
     deletarProduto = async () => {
         try {
             const {idDeletar} = this.state
+            this.setState({
+                dialogProduto: false,
+                dialogCarregando: true,
+                mensagemCarregendo: 'Aguarde, deletando produto...'
+            })
             let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}/?id=${idDeletar}`
             let conexao = {method: 'delete'}
             const {returnCode, message} = await request(url, conexao)
+            this.setState({dialogCarregando: false})
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
-            this.setState({dialogProduto: false})
             await this.consultarProdutos()
         } catch (e) {
             console.error(e.message)
@@ -143,9 +156,11 @@ class Produtos extends React.Component {
 
     alterarProduto = async (id, json) => {
         try {
+            this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, alterando produto...'})
             let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}/?id=${id}`
             let conexao = {method: 'put', body: JSON.stringify(json)}
             const {returnCode, message} = await request(url, conexao)
+            this.setState({dialogCarregando: false})
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
             await this.consultarProdutos()
         } catch (e) {
@@ -191,7 +206,7 @@ class Produtos extends React.Component {
 
     cancelaEtapas = () => this.setState({dialogEtapas: false, etapasProduto: []})
 
-    onClickListaEtapas = () => this.setState({dialogEtapas: true})
+    onClickListaEtapas = () => this.setState({dialogEtapas: true, etapasProduto: []})
 
     limpar = () => {
         document.getElementById('descricao').value = ''
@@ -226,7 +241,7 @@ class Produtos extends React.Component {
             let descricao = document.getElementById('descricao').value
             let json = {
                 produto: produto,
-                preco: preco !== '' ? preco : 0,
+                preco: preco !== '' ? parseFloat(preco) : 0,
                 imagem: imageBase64 !== '' ? imageBase64 : imagem,
                 descricao: descricao,
                 etapasProduto: etapasProduto,
@@ -244,13 +259,12 @@ class Produtos extends React.Component {
     adicionar = async () => {
         try {
             const {produto, preco, categorias, categoria, imageBase64, dados, ativo, etapasProduto, codigo} = this.state
-
             if (produto === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque um nome no produto'})
             if (categoria === 999) return this.setState({
                 dialogAviso: true,
                 mensagemAviso: 'Escolhe uma categoria para o produto'
             })
-
+            this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, adicionando produto...'})
             let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}`
             let ordem = dados.length
             let descricao = document.getElementById('descricao').value
@@ -261,7 +275,7 @@ class Produtos extends React.Component {
                     categoria: (categorias.length !== 0 && categoria !== 999) ? categorias[categoria].categoria : 'Nenhum',
                     indexCategoria: categoria,
                     descricao: descricao,
-                    preco: preco !== '' ? preco : 0,
+                    preco: preco !== '' ? parseFloat(preco) : 0,
                     ativo: ativo,
                     etapasProduto: etapasProduto,
                     imagem: imageBase64,
@@ -270,6 +284,7 @@ class Produtos extends React.Component {
                 })
             }
             const {returnCode, message} = await request(url, conexao)
+            this.setState({dialogCarregando: false})
             if (returnCode) {
                 this.limpar()
                 await this.consultarProdutos()
@@ -356,7 +371,11 @@ class Produtos extends React.Component {
             editando,
             dialogEtapas,
             adicionais,
-            codigo
+            codigo,
+            dialogCarregando,
+            mensagemCarregendo,
+            listaEtapas,
+            etapasProduto
         } = this.state
         return (
             <div>
@@ -416,6 +435,23 @@ class Produtos extends React.Component {
                                                     </Select>
                                                 </FormControl>
                                             </div>
+
+                                            <div id="div-inputs-produtos">
+                                                {
+                                                    (listaEtapas) &&
+                                                    <div>
+                                                        {
+                                                            etapasProduto.map((i, index) => (
+                                                                <div key={index}>
+                                                                    <FormLabel
+                                                                        id="label-titulo-adicional">{i.tituloAdicional}</FormLabel>
+                                                                </div>
+                                                            ))
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+
                                             <div id="div-inputs-produtos">
                                                 <Input id="input-image" type="file"
                                                        onChange={(e) => this.handleImage(e)}/>
@@ -485,6 +521,14 @@ class Produtos extends React.Component {
                         <Button color="primary" onClick={this.confirmarEtapas}>Confirmar</Button>
                     </DialogActions>
                 </Dialog>
+
+                <Dialog open={dialogCarregando}>
+                    <DialogContent id="dialog-carregando">
+                        <CircularProgress size={30}/>
+                        <DialogContentText id="label-carregando">{mensagemCarregendo}</DialogContentText>
+                    </DialogContent>
+                </Dialog>
+
                 <Dialog open={dialogAviso} onClose={this.cancelaAviso}>
                     <DialogTitle>Aviso</DialogTitle>
                     <DialogContent>

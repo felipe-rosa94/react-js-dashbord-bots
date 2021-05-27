@@ -14,7 +14,7 @@ import {
     CardContent, DialogContentText, DialogActions, Box, Switch
 } from '@material-ui/core'
 import {withStyles} from '@material-ui/core/styles'
-import {cleanAccents, request} from '../util'
+import {chave, cleanAccents, request} from '../util'
 import {Edit, Delete, AddCircleOutline, Cancel, Search} from '@material-ui/icons'
 import {
     createMuiTheme,
@@ -89,7 +89,7 @@ class Adicionais extends React.Component {
 
     adicional = async () => {
         const {id, itens, adicional, valor} = this.state
-        let json = {adicional: adicional, valor: valor !== '' ? valor : 0}
+        let json = {adicional: adicional, valor: valor !== '' ? parseFloat(valor) : 0}
         itens.push(json)
         let url = `${REACT_APP_URL_MONGODB}/adicionais-${tabela}/?id=${id}`
         let conexao = {method: 'put', body: JSON.stringify({itens: itens})}
@@ -153,7 +153,8 @@ class Adicionais extends React.Component {
             exibirValores: exibirValores,
             tituloAdicional: tituloAdicional,
             tipo: tipo,
-            itens: []
+            itens: [],
+            codigo: chave()
         }
         const conexao = {method: 'post', body: JSON.stringify(json)}
         const {returnCode, message} = await request(url, conexao)
@@ -269,7 +270,7 @@ class Adicionais extends React.Component {
                                            onChange={this.handleInput}/>
                                 <Box p={1}/>
                                 <TextField variant="outlined" value={valor} fullWidth={true} placeholder="Valor"
-                                           name="valor"
+                                           name="valor" type="number"
                                            onChange={this.handleInput}/>
                                 <Box p={1}/>
                                 <AddCircleOutline id="icone" onClick={this.onClickAdicional}/>
