@@ -1,6 +1,7 @@
 #site {
     display: flex;
     justify-content: center;
+    margin-bottom: 200px;
 }
 
 #section-body-site {

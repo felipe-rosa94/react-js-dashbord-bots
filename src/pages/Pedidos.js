@@ -4,7 +4,7 @@ import MenuInferior from '../components/MenuInferior'
 import Pedido from '../components/Pedido'
 import {request, idPedido} from '../util'
 import firebase from '../firebase'
-import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@material-ui/core";
+import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from '@material-ui/core'
 
 const {REACT_APP_URL_MONGODB} = process.env
 
@@ -28,6 +28,7 @@ class Pedidos extends React.Component {
         const {pedido, status} = this.state
         this.setState({dialogPedido: false})
         this.alterarStatusPedidos(pedido, status)
+        this.arquivaPedido(pedido)
     }
 
     cancelaEntragaPedido = () => this.setState({dialogPedido: false, id_pedido: ''})
@@ -46,14 +47,21 @@ class Pedidos extends React.Component {
 
     gravaPedido = pedidos => {
         pedidos.sort((a, b) => {
-            if (a.data > b.data) return 1
-            if (a.data < b.data) return -1
+            if (a.data > b.data) return -1
+            if (a.data < b.data) return 1
             return 0
         })
         pedidos.forEach(i => {
             if (i.status === 'ENVIADO') this.alterarStatusPedidos(i, 'RECEBIDO')
         })
         this.setState({pedidos: pedidos})
+    }
+
+    arquivaPedido = pedido => {
+        const tabela = localStorage.getItem(`gp:tabela`)
+        let url = `${REACT_APP_URL_MONGODB}/pedidos-${tabela}`
+        let conexao = {method: 'post', body: JSON.stringify(pedido)}
+        request(url, conexao)
     }
 
     alterarStatusPedidos = async (pedido, status) => {
@@ -63,14 +71,6 @@ class Pedidos extends React.Component {
             .ref('pedidos')
             .child(pedido.id_pedido)
             .update(pedido)
-    }
-
-    deletarPedidos = async id_pedido => {
-        await firebase
-            .database()
-            .ref('pedidos')
-            .child(id_pedido)
-            .remove()
     }
 
     componentDidMount() {
@@ -83,16 +83,20 @@ class Pedidos extends React.Component {
             <div>
                 <section id="section-body">
                     <section id="section-body-pedidos">
-                        {pedidos.map((i, index) => (
-                            <Pedido key={index} data={i} handleChange={this.handlePedido.bind(this)}/>))}
+                        {
+                            // eslint-disable-next-line array-callback-return
+                            pedidos.map((i, index) => {
+                                if (i.status === 'ENVIADO' || i.status === 'RECEBIDO')
+                                    return (<Pedido key={index} data={i} handleChange={this.handlePedido.bind(this)}/>)
+                            })
+                        }
                     </section>
                     <MenuInferior pagina="pedidos"/>
                 </section>
-
                 <Dialog open={dialogPedido} onClose={this.cancelaEntragaPedido}>
                     <DialogTitle>Deletar</DialogTitle>
                     <DialogContent>
-                        <DialogContentText>{`Confirma pedido está pronto ${id_pedido} ?`}</DialogContentText>
+                        <DialogContentText>{`Confirma troca de status do pedido ${id_pedido} ?`}</DialogContentText>
                     </DialogContent>
                     <DialogActions>
                         <Button color="primary" onClick={this.cancelaEntragaPedido}>Não</Button>

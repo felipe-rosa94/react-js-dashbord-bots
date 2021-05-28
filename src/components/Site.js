@@ -5,14 +5,14 @@ import {
     Button,
     Card,
     CardContent,
-    CardMedia, Checkbox,
+    CardMedia, Checkbox, CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle,
     Divider, FormControlLabel,
-    FormLabel, Input,
+    FormLabel, Input, Switch,
     TextField
 } from '@material-ui/core'
 import {phoneMask, cepMask, request} from '../util'
@@ -57,7 +57,10 @@ class Site extends React.Component {
         observacao: true,
         dinheiro: true,
         cartao: true,
-        online: false
+        online: false,
+        statusLoja: false,
+        dialogCarregando: false,
+        mensagemCarregendo: ''
     }
 
     handleImage = e => {
@@ -158,6 +161,10 @@ class Site extends React.Component {
         }
     }
 
+    onClickStatusLoja = e => {
+        this.setState({statusLoja: e.target.checked})
+    }
+
     onClickBloqueaRaios = () => this.setState({dialogRaios: true})
 
     onClickBloqueaCeps = () => this.setState({dialogCeps: true})
@@ -247,7 +254,8 @@ class Site extends React.Component {
                 dinheiro,
                 cartao,
                 online,
-                endereco
+                endereco,
+                statusLoja
             } = data[0]
             this.setState({
                 _id: _id,
@@ -259,7 +267,8 @@ class Site extends React.Component {
                 dinheiro: dinheiro,
                 cartao: cartao,
                 online: online,
-                endereco: endereco
+                endereco: endereco,
+                statusLoja: statusLoja
             })
         } catch (e) {
             console.log(e.message)
@@ -277,7 +286,8 @@ class Site extends React.Component {
             dinheiro,
             cartao,
             online,
-            endereco
+            endereco,
+            statusLoja
         } = this.state
 
         let json = {
@@ -289,8 +299,10 @@ class Site extends React.Component {
             dinheiro: dinheiro,
             cartao: cartao,
             online: online,
-            endereco: endereco
+            endereco: endereco,
+            statusLoja
         }
+        this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, salvando configurações...'})
         let url
         let conexao
         if (_id) {
@@ -302,6 +314,7 @@ class Site extends React.Component {
             conexao = {method: 'post', body: JSON.stringify(json)}
         }
         const {returnCode, message} = await request(url, conexao)
+        this.setState({dialogCarregando: false})
         if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
     }
 
@@ -330,7 +343,10 @@ class Site extends React.Component {
             dinheiro,
             cartao,
             online,
-            endereco
+            endereco,
+            statusLoja,
+            dialogCarregando,
+            mensagemCarregendo
         } = this.state
         return (
             <MuiThemeProvider theme={theme}>
@@ -386,6 +402,13 @@ class Site extends React.Component {
 
 
                                     <div id="div-menu-site">
+                                        <FormLabel id="label-descricao">Status da loja</FormLabel>
+                                        <FormControlLabel
+                                            control={<Switch checked={statusLoja} color="primary"
+                                                             onChange={this.onClickStatusLoja}/>}
+                                            label={statusLoja ? 'Loja aberta' : 'Loja fechada'}
+                                        />
+
                                         <FormLabel id="label-descricao">Permissões</FormLabel>
                                         <FormControlLabel control={<CheckButton/>} name="observacao"
                                                           label="Permitir obsevação na sacola" checked={observacao}
@@ -500,6 +523,12 @@ class Site extends React.Component {
                         <DialogActions>
                             <Button onClick={this.cancelaRaios}>Fechar</Button>
                         </DialogActions>
+                    </Dialog>
+                    <Dialog open={dialogCarregando}>
+                        <DialogContent id="dialog-carregando">
+                            <CircularProgress size={30}/>
+                            <DialogContentText id="label-carregando">{mensagemCarregendo}</DialogContentText>
+                        </DialogContent>
                     </Dialog>
                     <Dialog open={dialogAviso} onClose={this.cancelaAviso}>
                         <DialogTitle>Aviso</DialogTitle>

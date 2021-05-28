@@ -6,9 +6,13 @@ import {idPedido} from '../util'
 
 class Pedido extends React.Component {
 
-    onClick = pedido => {
-        let status = (pedido.cliente.endereco.retirar !== undefined) ? 'PRONTO' : 'ENTREGANDO'
-        this.props.handleChange({pedido: pedido, status: status})
+    onClick = objeto => {
+        if (objeto.acao === 'status') {
+            let status = (objeto.pedido.cliente.endereco.retirar !== undefined) ? 'PRONTO' : 'ENTREGANDO'
+            this.props.handleChange({pedido: objeto.pedido, status: status})
+        } else if (objeto.acao === 'cancelar') {
+            this.props.handleChange({pedido: objeto.pedido, status: 'CANCELADO'})
+        }
     }
 
     dataFormatada = data => {
@@ -116,8 +120,15 @@ class Pedido extends React.Component {
                         })}`}</FormLabel>
                     </CardContent>
                     <CardContent id="card-content-pedido">
-                        <Button variant="outlined" fullWidth={true} onClick={() => this.onClick(this.props.data)}>
+                        <Button variant="outlined" fullWidth={true}
+                                onClick={() => this.onClick({acao: 'status', pedido: this.props.data})}>
                             Pedido pronto
+                        </Button>
+                    </CardContent>
+                    <CardContent id="card-content-pedido">
+                        <Button variant="outlined" fullWidth={true}
+                                onClick={() => this.onClick({acao: 'cancelar', pedido: this.props.data})}>
+                            Cancelar pedido
                         </Button>
                     </CardContent>
                 </Card>
