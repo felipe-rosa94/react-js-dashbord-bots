@@ -22,9 +22,10 @@ import {
     Checkbox, CircularProgress
 } from '@material-ui/core'
 import Produto from '../components/Produto'
-import {cleanAccents, request} from '../util'
+import {chave, cleanAccents, request} from '../util'
 import {withStyles} from '@material-ui/core/styles'
 import {Cancel, Search, ExpandMore, ExpandLess} from '@material-ui/icons'
+import firebase from '../firebase'
 
 const {REACT_APP_URL_MONGODB} = process.env
 let tabela
@@ -38,10 +39,11 @@ class Produtos extends React.Component {
     state = {
         editando: false,
         vizualizar: true,
-        imageBase64: '',
+        arquivoImagem: '',
         busca: '',
         buscando: false,
         produto: '',
+        codigo: '',
         categoria: 999,
         descricao: '',
         preco: '',
@@ -61,16 +63,21 @@ class Produtos extends React.Component {
     }
 
     handleImage = e => {
-        try {
-            let file = e.target.files[0]
-            let reader = new FileReader()
-            reader.readAsDataURL(file)
-            reader.onload = () => {
-                this.setState({imagem: reader.result.replace(/=/g, ''), imageBase64: reader.result.replace(/=/g, '')})
-            }
-        } catch (e) {
-            console.error(e.message)
+        let file = e.target.files[0]
+        let reader = new FileReader()
+        reader.readAsDataURL(file)
+        reader.onload = () => this.setState({imagem: reader.result.replace(/=/g, ''), arquivoImagem: file})
+    }
+
+    uploadImage = async (key, image) => {
+        this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, fazendo upload da imagem...'})
+        const {_delegate: {state}} = await firebase.storage().ref(`imagens/${key}`).put(image)
+        this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, obtendo URL...'})
+        if (state === 'success') {
+            this.setState({dialogCarregando: false})
+            return await firebase.storage().ref(`imagens/${key}`).getDownloadURL()
         }
+        return ''
     }
 
     handleInput = e => this.setState({[e.target.name]: isNaN(e.target.value) ? e.target.value : e.target.value})
@@ -78,7 +85,19 @@ class Produtos extends React.Component {
     handleProdutos = async objeto => {
         let {
             acao,
-            dados: {_id, produto, ativo, imagem, ordem, preco, descricao, indexCategoria, codigo, etapasProduto}
+            dados: {
+                _id,
+                produto,
+                ativo,
+                imagem,
+                chaveImagem,
+                ordem,
+                preco,
+                descricao,
+                indexCategoria,
+                codigo,
+                etapasProduto
+            }
         } = objeto
         const {dados} = this.state
         if (acao === 'ativo') {
@@ -96,6 +115,8 @@ class Produtos extends React.Component {
             await this.alterarProduto(_id, {ordem: novaOrdem})
             await this.alterarProduto(dados[novaOrdem]._id, {ordem: ordem})
         } else if (acao === 'editar') {
+            let date = new Date()
+            let chave = date.getTime()
             this.setState({
                 vizualizar: true,
                 editando: true,
@@ -106,7 +127,8 @@ class Produtos extends React.Component {
                 imagem: imagem,
                 categoria: indexCategoria,
                 codigo: codigo,
-                listaEtapas: true
+                listaEtapas: true,
+                chaveImagem: (chaveImagem !== undefined) ? chaveImagem : chave
             })
             setTimeout(() => {
                 document.getElementById('descricao').value = descricao
@@ -218,7 +240,7 @@ class Produtos extends React.Component {
             categoria: 999,
             editando: false,
             imagem: '',
-            imageBase64: '',
+            arquivoImagem: '',
             etapasProduto: [],
             codigo: ''
         })
@@ -230,26 +252,28 @@ class Produtos extends React.Component {
             _id,
             produto,
             imagem,
-            imageBase64,
+            arquivoImagem,
             preco,
             categoria,
             categorias,
             etapasProduto,
-            codigo
+            codigo,
+            chaveImagem
         } = this.state
         if (editando) {
             let descricao = document.getElementById('descricao').value
-            let json = {
+            let item = {
                 produto: produto,
                 preco: preco !== '' ? parseFloat(preco) : 0,
-                imagem: imageBase64 !== '' ? imageBase64 : imagem,
+                imagem: arquivoImagem !== '' ? await this.uploadImage(chaveImagem, arquivoImagem) : imagem,
                 descricao: descricao,
                 etapasProduto: etapasProduto,
                 categoria: (categorias.length !== 0 && categoria !== 999) ? categorias[categoria].categoria : 'Nenhum',
                 indexCategoria: categoria,
-                codigo: codigo
+                codigo: codigo !== undefined ? codigo : '',
+                chaveImagem: chaveImagem
             }
-            await this.alterarProduto(_id, json)
+            await this.alterarProduto(_id, item)
             this.limpar()
         } else {
             await this.adicionar()
@@ -258,7 +282,17 @@ class Produtos extends React.Component {
 
     adicionar = async () => {
         try {
-            const {produto, preco, categorias, categoria, imageBase64, dados, ativo, etapasProduto, codigo} = this.state
+            const {
+                produto,
+                preco,
+                categorias,
+                categoria,
+                arquivoImagem,
+                dados,
+                ativo,
+                etapasProduto,
+                codigo
+            } = this.state
             if (produto === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque um nome no produto'})
             if (categoria === 999) return this.setState({
                 dialogAviso: true,
@@ -268,21 +302,26 @@ class Produtos extends React.Component {
             let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}`
             let ordem = dados.length
             let descricao = document.getElementById('descricao').value
-            const conexao = {
-                method: 'post',
-                body: JSON.stringify({
-                    produto: produto,
-                    categoria: (categorias.length !== 0 && categoria !== 999) ? categorias[categoria].categoria : 'Nenhum',
-                    indexCategoria: categoria,
-                    descricao: descricao,
-                    preco: preco !== '' ? parseFloat(preco) : 0,
-                    ativo: ativo,
-                    etapasProduto: etapasProduto,
-                    imagem: imageBase64,
-                    ordem: ordem,
-                    codigo: codigo
-                })
+
+            let chaveImagem = chave()
+            let imagem = await this.uploadImage(chaveImagem, arquivoImagem)
+
+            let item = {
+                produto: produto,
+                categoria: (categorias.length !== 0 && categoria !== 999) ? categorias[categoria].categoria : 'Nenhum',
+                indexCategoria: categoria,
+                descricao: descricao,
+                preco: preco !== '' ? parseFloat(preco) : 0,
+                ativo: ativo,
+                etapasProduto: etapasProduto,
+                imagem: imagem,
+                ordem: ordem,
+                codigo: codigo !== undefined ? codigo : '',
+                chaveImagem: chaveImagem
             }
+
+            const conexao = {method: 'post', body: JSON.stringify(item)}
+
             const {returnCode, message} = await request(url, conexao)
             this.setState({dialogCarregando: false})
             if (returnCode) {
@@ -298,9 +337,11 @@ class Produtos extends React.Component {
 
     consultarProdutos = async () => {
         try {
+            this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, baixando produtos...'})
             let url = `${REACT_APP_URL_MONGODB}/produtos-${tabela}`
             const conexao = {method: 'get'}
             const {returnCode, message, data} = await request(url, conexao)
+            this.setState({dialogCarregando: false})
             if (returnCode) {
                 data.sort((a, b) => {
                     if (b.ordem > a.ordem) return -1
@@ -452,11 +493,19 @@ class Produtos extends React.Component {
                                                 }
                                             </div>
 
-                                            <div id="div-inputs-produtos">
-                                                <Input id="input-image" type="file"
-                                                       onChange={(e) => this.handleImage(e)}/>
-                                                <Box p={1}/>
-                                                {imagem && <CardMedia id="card-media-imagem-pequena" image={imagem}/>}
+                                            <div id="div-inputs-produtos-image">
+                                                <div id="div-input-image">
+                                                    <Input id="input-image" type="file"
+                                                           onChange={(e) => this.handleImage(e)}/>
+                                                </div>
+                                                <div id="div-input-image">
+                                                    {
+                                                        imagem &&
+                                                        <Card>
+                                                            <CardMedia id="card-media-imagem-pequena" image={imagem}/>
+                                                        </Card>
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -521,14 +570,12 @@ class Produtos extends React.Component {
                         <Button color="primary" onClick={this.confirmarEtapas}>Confirmar</Button>
                     </DialogActions>
                 </Dialog>
-
                 <Dialog open={dialogCarregando}>
                     <DialogContent id="dialog-carregando">
                         <CircularProgress size={30}/>
                         <DialogContentText id="label-carregando">{mensagemCarregendo}</DialogContentText>
                     </DialogContent>
                 </Dialog>
-
                 <Dialog open={dialogAviso} onClose={this.cancelaAviso}>
                     <DialogTitle>Aviso</DialogTitle>
                     <DialogContent>

@@ -1,6 +1,6 @@
 import React from 'react'
 import '../styles/configuracoes.css'
-import {AppBar, FormControlLabel, FormLabel, Switch, Tab, Tabs} from '@material-ui/core'
+import {AppBar, Tab, Tabs} from '@material-ui/core'
 import MenuInferior from '../components/MenuInferior'
 import WhatsApp from '../components/WhatsApp'
 import Site from '../components/Site'
@@ -9,8 +9,6 @@ import {
     createMuiTheme,
     MuiThemeProvider
 } from '@material-ui/core/styles'
-import Produtos from "./Produtos";
-import Adicionais from "./Adicionais";
 
 const theme = createMuiTheme({
     palette: {
@@ -42,14 +40,12 @@ class Configuracoes extends React.Component {
                               onChange={this.handleTabs}
                               aria-label="simple tabs example">
                             <Tab label="Site"/>
-                            <Tab label="WhatsApp"/>
+
                         </Tabs>
                     </AppBar>
                     {(() => {
                         if (tabIndex === 0) {
                             return (<Site/>)
-                        } else if (tabIndex === 1) {
-                            return (<WhatsApp/>)
                         }
                     })()}
                     <MenuInferior pagina="configuracoes"/>

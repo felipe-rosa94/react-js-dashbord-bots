@@ -1,7 +1,11 @@
 import React from 'react'
 import '../styles/login.css'
-import {Button, Card, CardContent, TextField} from '@material-ui/core'
+import {Button, Card, CardMedia, CardContent, FormLabel, TextField} from '@material-ui/core'
 import {request} from '../util'
+import logo from '../imagens/logo512.png'
+import firebase from 'firebase'
+
+const versao = '1.2'
 
 const {REACT_APP_URL_MONGODB} = process.env
 
@@ -16,21 +20,29 @@ class Login extends React.Component {
 
     onClickEntrar = async () => {
         const {usuario, senha} = this.state
-        const url = `${REACT_APP_URL_MONGODB}/usuarios/?user=${usuario}&password=${senha}`
-        const conexao = {method: 'get'}
-        const {returnCode, data, message} = await request(url, conexao)
-        if (!returnCode) return alert(message)
-        if (data.length === 0) return alert('Usuário ou senha incorretos')
-        const {table} = data[0]
-        localStorage.setItem(`gp:tabela`, table)
-        sessionStorage.setItem(`gp:usuario`, usuario)
-        sessionStorage.setItem(`gp:senha`, senha)
-        this.props.history.replace('/pedidos')
+        firebase
+            .database()
+            .ref('usuarios')
+            .child(usuario)
+            .once('value')
+            .then((data) => {
+                if (data.val().senha === senha) {
+                    sessionStorage.setItem(`gp:usuario`, usuario)
+                    sessionStorage.setItem(`gp:senha`, senha)
+                    this.props.history.replace('/pedidos')
+                } else {
+                    alert('Usuário ou senha incorretos')
+                }
+            })
+            .catch((e) => {
+
+            })
     }
 
     render() {
         return (
             <div id="login">
+                <CardMedia id="logo-login" image={logo}/>
                 <Card id="card-login">
                     <CardContent id="card-content-login">
                         <div id="div-formulario-login">
@@ -46,6 +58,7 @@ class Login extends React.Component {
                         </div>
                     </CardContent>
                 </Card>
+                <FormLabel>{`versão: ${versao}`}</FormLabel>
             </div>
         )
     }

@@ -105,6 +105,23 @@
     margin: 4px;
 }
 
+#div-input-image {
+    display: flex;
+    flex: 1;
+}
+
+#div-inputs-produtos-image {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#div-input-image {
+    display: flex;
+    justify-content: flex-end;
+}
+
 @media screen and (max-width: 1440px) {
     #section-body-produtos {
         width: 65%;

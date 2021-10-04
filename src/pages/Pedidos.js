@@ -6,7 +6,9 @@ import {request, idPedido} from '../util'
 import firebase from '../firebase'
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from '@material-ui/core'
 
-const {REACT_APP_URL_MONGODB} = process.env
+const {REACT_APP_URL_MONGODB, REACT_APP_URL_PEDIDO} = process.env
+
+const URL_SOM = 'https://firebasestorage.googleapis.com/v0/b/while-dev.appspot.com/o/som%2F89780465.mp3?alt=media&token=6a672d2c-1f66-4a95-a8e2-f425006b55d4'
 
 class Pedidos extends React.Component {
 
@@ -40,21 +42,29 @@ class Pedidos extends React.Component {
             .ref('pedidos')
             .orderByChild('loja')
             .equalTo(tabela)
-            .on('value', data => {
-                if (data.val() !== null) this.gravaPedido(Object.values(data.val()))
+            .on('value', async data => {
+                if (data.val() !== null) await this.gravaPedido(Object.values(data.val()))
             })
     }
 
-    gravaPedido = pedidos => {
+    gravaPedido = async pedidos => {
         pedidos.sort((a, b) => {
             if (a.data > b.data) return -1
             if (a.data < b.data) return 1
             return 0
         })
-        pedidos.forEach(i => {
-            if (i.status === 'ENVIADO') this.alterarStatusPedidos(i, 'RECEBIDO')
-        })
+        for (let i = 0; i < pedidos.length; i++) {
+            if (pedidos[i].status === 'ENVIADO') {
+                this.play()
+                break
+            }
+        }
         this.setState({pedidos: pedidos})
+    }
+
+    play = () => {
+        let audio = new Audio(URL_SOM)
+        audio.play().then(r => console.log(r))
     }
 
     arquivaPedido = pedido => {
@@ -66,11 +76,11 @@ class Pedidos extends React.Component {
 
     alterarStatusPedidos = async (pedido, status) => {
         pedido.status = status
-        await firebase
-            .database()
-            .ref('pedidos')
-            .child(pedido.id_pedido)
-            .update(pedido)
+        const {message} = await request(REACT_APP_URL_PEDIDO, {
+            method: 'POST',
+            body: JSON.stringify(pedido)
+        })
+        console.log(message)
     }
 
     componentDidMount() {

@@ -12,6 +12,8 @@ class Pedido extends React.Component {
             this.props.handleChange({pedido: objeto.pedido, status: status})
         } else if (objeto.acao === 'cancelar') {
             this.props.handleChange({pedido: objeto.pedido, status: 'CANCELADO'})
+        } else if (objeto.acao === 'confirmar') {
+            this.props.handleChange({pedido: objeto.pedido, status: 'RECEBIDO'})
         }
     }
 
@@ -51,7 +53,8 @@ class Pedido extends React.Component {
             },
             itens,
             data,
-            id_pedido
+            id_pedido,
+            status
         } = this.props.data
         return (
             <div>
@@ -75,7 +78,8 @@ class Pedido extends React.Component {
                         {
                             itens.map((i, index) => (
                                 <div key={index}>
-                                    <FormLabel id="produto-pedido">{`${i.quantidade}x ${i.produto}`}</FormLabel>
+                                    <FormLabel
+                                        id="produto-pedido">{`${i.quantidade}x ${`${i.codigo} - ${i.produto}`}`}</FormLabel>
                                     <FormLabel id="observacao-pedido">{i.observacao}</FormLabel>
                                     {
                                         (i.subitens !== undefined) &&
@@ -121,8 +125,11 @@ class Pedido extends React.Component {
                     </CardContent>
                     <CardContent id="card-content-pedido">
                         <Button variant="outlined" fullWidth={true}
-                                onClick={() => this.onClick({acao: 'status', pedido: this.props.data})}>
-                            Pedido pronto
+                                onClick={() => this.onClick({
+                                    acao: (status === 'ENVIADO') ? 'confirmar' : 'status',
+                                    pedido: this.props.data
+                                })}>
+                            {status === 'ENVIADO' ? 'Confirmar recebimento' : 'Pedido pronto'}
                         </Button>
                     </CardContent>
                     <CardContent id="card-content-pedido">

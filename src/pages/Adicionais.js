@@ -11,7 +11,7 @@ import {
     DialogContent,
     Dialog,
     Card,
-    CardContent, DialogContentText, DialogActions, Box, Switch
+    CardContent, DialogContentText, DialogActions, Box, Switch, CircularProgress
 } from '@material-ui/core'
 import {withStyles} from '@material-ui/core/styles'
 import {chave, cleanAccents, request} from '../util'
@@ -48,6 +48,8 @@ class Adicionais extends React.Component {
         dialogDeletar: false,
         dialogAviso: false,
         dialogAdicionais: false,
+        dialogCarregando:false,
+        mensagemCarregendo:'',
         tituloAdicional: '',
         dialogTituloAdicionais: '',
         adicional: '',
@@ -93,8 +95,10 @@ class Adicionais extends React.Component {
         itens.push(json)
         let url = `${REACT_APP_URL_MONGODB}/adicionais-${tabela}/?id=${id}`
         let conexao = {method: 'put', body: JSON.stringify({itens: itens})}
+        this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde...'})
         const {returnCode, message} = await request(url, conexao)
         if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
+        this.setState({dialogCarregando: false})
         this.consultaAdicionais()
         this.setState({adicional: '', valor: ''})
     }
@@ -112,9 +116,11 @@ class Adicionais extends React.Component {
             const {id} = this.state
             let url = `${REACT_APP_URL_MONGODB}/adicionais-${tabela}/?id=${id}`
             let conexao = {method: 'delete'}
+            this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde...'})
             const {returnCode, message} = await request(url, conexao)
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
             this.setState({dialogDeletar: false})
+            this.setState({dialogCarregando: false})
             this.consultaAdicionais()
         } catch (e) {
             console.error(e.message)
@@ -128,8 +134,10 @@ class Adicionais extends React.Component {
             itens.splice(index, 1)
             let json = {itens: itens}
             let conexao = {method: 'put', body: JSON.stringify(json)}
+            this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde...'})
             const {returnCode, message} = await request(url, conexao)
             if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
+            this.setState({dialogCarregando: false})
             this.consultaAdicionais()
         } catch (e) {
 
@@ -157,8 +165,10 @@ class Adicionais extends React.Component {
             codigo: chave()
         }
         const conexao = {method: 'post', body: JSON.stringify(json)}
+        this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde...'})
         const {returnCode, message} = await request(url, conexao)
         if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
+        this.setState({dialogCarregando: false})
         this.consultaAdicionais()
         this.setState({tipo: '', tituloAdicional: '', exibirValores: false})
     }
@@ -166,8 +176,10 @@ class Adicionais extends React.Component {
     consultaAdicionais = async () => {
         let url = `${REACT_APP_URL_MONGODB}/adicionais-${tabela}`
         const conexao = {method: 'get'}
+        this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde...'})
         const {data} = await request(url, conexao)
         this.setState({adicionais: data, dados: data})
+        this.setState({dialogCarregando: false})
     }
 
     componentDidMount() {
@@ -191,7 +203,9 @@ class Adicionais extends React.Component {
             adicional,
             valor,
             busca,
-            buscando
+            buscando,
+            dialogCarregando,
+            mensagemCarregendo
         } = this.state
         return (
             <MuiThemeProvider theme={theme}>
@@ -312,6 +326,12 @@ class Adicionais extends React.Component {
                         <DialogTitle>Aviso</DialogTitle>
                         <DialogContent>
                             <DialogContentText>{mensagemAviso}</DialogContentText>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={dialogCarregando}>
+                        <DialogContent id="dialog-carregando">
+                            <CircularProgress size={30}/>
+                            <DialogContentText id="label-carregando">{mensagemCarregendo}</DialogContentText>
                         </DialogContent>
                     </Dialog>
                 </div>

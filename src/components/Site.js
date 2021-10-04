@@ -22,6 +22,7 @@ import {
     createMuiTheme,
     MuiThemeProvider, withStyles
 } from '@material-ui/core/styles'
+import firebase from "firebase";
 
 const theme = createMuiTheme({
     palette: {
@@ -35,8 +36,8 @@ const CheckButton = withStyles({
     checked: {},
 })(props => <Checkbox color="default" {...props} />)
 
-const {REACT_APP_URL_MONGODB, REACT_APP_URL_POSITION} = process.env
-let tabela
+const {REACT_APP_URL_MONGODB} = process.env
+let usuario
 
 class Site extends React.Component {
 
@@ -60,6 +61,8 @@ class Site extends React.Component {
         online: false,
         statusLoja: false,
         dialogCarregando: false,
+        retirada: true,
+        entrega: true,
         mensagemCarregendo: ''
     }
 
@@ -123,51 +126,58 @@ class Site extends React.Component {
 
     onClickBloquear = () => this.bloquear()
 
-    bloquear = async () => {
-        try {
-            const {cep} = this.state
-            if (cep === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque um cep válido'})
-            let url = `${REACT_APP_URL_MONGODB}/ceps-${tabela}`
-            const conexao = {method: 'post', body: JSON.stringify({cep: cep})}
-            const {returnCode} = await request(url, conexao)
-            if (returnCode) {
-                await this.consultaCepsBloqueados()
+    bloquear = () => {
+        const {cep} = this.state
+        if (cep === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque um cep válido'})
+        let json = {cep: cep}
+        firebase
+            .database()
+            .ref(`ceps/${usuario}/${cep}`)
+            .set(json)
+            .then((data) => {
+                this.consultaCepsBloqueados()
                 this.setState({cep: ''})
-            }
-        } catch (e) {
-            console.log(e.message)
-        }
+            })
+            .catch((e) => {
+
+            })
     }
 
     onClickRaio = () => this.raio()
 
     raio = async () => {
-        try {
-            const {distancia, taxa} = this.state
-            if (distancia === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque um metro válido'})
-            if (taxa === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque uma taxa válida'})
-            let url = `${REACT_APP_URL_MONGODB}/raio-${tabela}`
-            const conexao = {
-                method: 'post',
-                body: JSON.stringify({distancia: parseInt(distancia), taxa: parseInt(taxa)})
-            }
-            const {returnCode} = await request(url, conexao)
-            if (returnCode) {
-                await this.consultaRaios()
+        const {distancia, taxa} = this.state
+        if (distancia === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque um metro válido'})
+        if (taxa === '') return this.setState({dialogAviso: true, mensagemAviso: 'Coloque uma taxa válida'})
+
+        let json = {distancia: parseInt(distancia), taxa: parseInt(taxa)}
+
+        firebase
+            .database()
+            .ref(`raios/${usuario}/${distancia}`)
+            .set(json)
+            .then((data) => {
+                this.consultaRaios()
                 this.setState({distancia: '', taxa: ''})
-            }
-        } catch (e) {
-            console.log(e.message)
-        }
+            })
+            .catch((e) => {
+                console.error(e)
+            })
     }
 
     onClickStatusLoja = e => {
         this.setState({statusLoja: e.target.checked})
     }
 
-    onClickBloqueaRaios = () => this.setState({dialogRaios: true})
+    onClickBloqueaRaios = () => {
+        this.consultaRaios()
+        this.setState({dialogRaios: true})
+    }
 
-    onClickBloqueaCeps = () => this.setState({dialogCeps: true})
+    onClickBloqueaCeps = () => {
+        this.consultaCepsBloqueados()
+        this.setState({dialogCeps: true})
+    }
 
     cancelaCeps = () => {
         const {ceps} = this.state
@@ -194,7 +204,7 @@ class Site extends React.Component {
 
     deletarCep = async objeto => {
         try {
-            let url = `${REACT_APP_URL_MONGODB}/ceps-${tabela}/?id=${objeto._id}`
+            let url = `${REACT_APP_URL_MONGODB}/ceps-${usuario}/?id=${objeto._id}`
             let conexao = {method: 'delete'}
             const {returnCode} = await request(url, conexao)
             if (returnCode) await this.consultaCepsBloqueados()
@@ -207,7 +217,7 @@ class Site extends React.Component {
 
     deletarRaio = async objeto => {
         try {
-            let url = `${REACT_APP_URL_MONGODB}/raio-${tabela}/?id=${objeto._id}`
+            let url = `${REACT_APP_URL_MONGODB}/raio-${usuario}/?id=${objeto._id}`
             let conexao = {method: 'delete'}
             const {returnCode} = await request(url, conexao)
             if (returnCode) await this.consultaRaios()
@@ -216,31 +226,43 @@ class Site extends React.Component {
         }
     }
 
-    consultaCepsBloqueados = async () => {
-        try {
-            let url = `${REACT_APP_URL_MONGODB}/ceps-${tabela}`
-            const conexao = {method: 'get'}
-            const {returnCode, data} = await request(url, conexao)
-            if (returnCode) this.setState({ceps: data, cepsFiltro: data})
-        } catch (e) {
-            console.log(e.message)
-        }
+    consultaCepsBloqueados = () => {
+        firebase
+            .database()
+            .ref('ceps')
+            .child(usuario)
+            .once('value')
+            .then((data) => {
+                if (data.val() !== null) {
+                    let ceps = Object.values(data.val())
+                    this.setState({ceps: ceps, cepsFiltro: ceps})
+                }
+            })
+            .catch((e) => {
+                console.error(e)
+            })
     }
 
-    consultaRaios = async () => {
-        try {
-            let url = `${REACT_APP_URL_MONGODB}/raio-${tabela}`
-            const conexao = {method: 'get'}
-            const {returnCode, data} = await request(url, conexao)
-            if (returnCode) this.setState({raios: data, raiosFiltro: data})
-        } catch (e) {
-            console.log(e.message)
-        }
+    consultaRaios = () => {
+        firebase
+            .database()
+            .ref('raios')
+            .child(usuario)
+            .once('value')
+            .then((data) => {
+                if (data.val() != null) {
+                    let raios = Object.values(data.val())
+                    this.setState({raios: raios, raiosFiltro: raios})
+                }
+            })
+            .catch((e) => {
+
+            })
     }
 
     consultarConfiguracoes = async () => {
         try {
-            let url = `${REACT_APP_URL_MONGODB}/site-${tabela}`
+            let url = `${REACT_APP_URL_MONGODB}/site-${usuario}`
             const conexao = {method: 'get'}
             const {returnCode, message, data} = await request(url, conexao)
             if (!returnCode) return this.setState({dialogAviso: true, mensagemAviso: message})
@@ -255,7 +277,9 @@ class Site extends React.Component {
                 cartao,
                 online,
                 endereco,
-                statusLoja
+                statusLoja,
+                retirada,
+                entrega
             } = data[0]
             this.setState({
                 _id: _id,
@@ -268,7 +292,9 @@ class Site extends React.Component {
                 cartao: cartao,
                 online: online,
                 endereco: endereco,
-                statusLoja: statusLoja
+                statusLoja: statusLoja,
+                retirada: retirada,
+                entrega: entrega
             })
         } catch (e) {
             console.log(e.message)
@@ -277,51 +303,50 @@ class Site extends React.Component {
 
     salvarAlteracoes = async () => {
         let {
-            _id,
             tituloSite,
             whatsApp,
-            raio,
             banners,
             observacao,
             dinheiro,
             cartao,
             online,
             endereco,
-            statusLoja
+            statusLoja,
+            retirada,
+            entrega
         } = this.state
 
         let json = {
             tituloSite: tituloSite,
             whatsApp: whatsApp,
-            raio: raio,
             banners: banners,
             observacao: observacao,
             dinheiro: dinheiro,
             cartao: cartao,
             online: online,
             endereco: endereco,
-            statusLoja
+            statusLoja: statusLoja,
+            retirada: retirada,
+            entrega: entrega
         }
+
         this.setState({dialogCarregando: true, mensagemCarregendo: 'Aguarde, salvando configurações...'})
-        let url
-        let conexao
-        if (_id) {
-            url = `${REACT_APP_URL_MONGODB}/site-${tabela}/?id=${_id}`
-            conexao = {method: 'put', body: JSON.stringify(json)}
-        } else {
-            json.banners = []
-            url = `${REACT_APP_URL_MONGODB}/site-${tabela}`
-            conexao = {method: 'post', body: JSON.stringify(json)}
-        }
-        const {returnCode, message} = await request(url, conexao)
-        this.setState({dialogCarregando: false})
-        if (!returnCode) this.setState({dialogAviso: true, mensagemAviso: message})
+
+        firebase
+            .database()
+            .ref(`configuracoes/${usuario}`)
+            .set(json)
+            .then((data) => {
+                this.setState({dialogCarregando: false})
+            })
+            .catch((e) => {
+                console.error(e)
+            })
+        //this.consultarConfiguracoes()
     }
 
     componentDidMount() {
-        tabela = localStorage.getItem(`gp:tabela`)
-        this.consultaRaios()
-        this.consultaCepsBloqueados()
+        usuario = sessionStorage.getItem(`gp:usuario`)
         this.consultarConfiguracoes()
     }
 
@@ -346,7 +371,9 @@ class Site extends React.Component {
             endereco,
             statusLoja,
             dialogCarregando,
-            mensagemCarregendo
+            mensagemCarregendo,
+            retirada,
+            entrega
         } = this.state
         return (
             <MuiThemeProvider theme={theme}>
@@ -423,6 +450,14 @@ class Site extends React.Component {
                                                           onChange={this.onCheck}/>
                                         <FormControlLabel control={<CheckButton/>} name="online"
                                                           label="Pagamento Online" checked={online}
+                                                          onChange={this.onCheck}/>
+
+                                        <FormLabel id="label-descricao">Modo de entrega</FormLabel>
+                                        <FormControlLabel control={<CheckButton/>} name="retirada"
+                                                          label="Retirada" checked={retirada}
+                                                          onChange={this.onCheck}/>
+                                        <FormControlLabel control={<CheckButton/>} name="entrega"
+                                                          label="Entrega" checked={entrega}
                                                           onChange={this.onCheck}/>
                                     </div>
 
